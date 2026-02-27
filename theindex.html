@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        :root{ --g: linear-gradiant(120deg,#ff7a7a, #ffd76f, #7affc1, #7ab2ff); }
+        body{
+            margin: 0; min-height: 100svh; display: grid; place-items: center;
+            background:radial-gradient(1200px 600px at 50% 10%, #0b1020 0%, #060912 50%, #04060d 100%);
+            color: #fff; font-family: system-ui, -apple-system, Arial, sans-serif;
+        }
+        h1 {
+            font-size: calamp(2.2rem, 8vw, 6rem); margin: 0; line-height: 1.05;
+            background:var(--g);
+            background-size: 200% 200%;
+
+            background-clip: text; color:transparent;
+            animation: shift 6s ease-in-out infinite alternate;
+            text-align: center;padding: 0 1rem;
+        }
+        @keyframes shift {to {background-position: 100% 50%;} }
+    </style>
+</head>
+<body>
+    <h1>John</h1>
+</body>
+</html>
