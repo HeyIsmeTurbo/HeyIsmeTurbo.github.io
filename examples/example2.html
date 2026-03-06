@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #43e97b 0%, #38b6a3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            color: #555;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input,
+        select {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        input[type="number"] {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        select {
+            min-width: 130px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.delete-btn {
+            background: #e74c3c;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            margin-left: auto;
+        }
+
+        button.delete-btn:hover {
+            background: #c0392b;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .stat-value.income {
+            color: #27ae60;
+        }
+
+        .stat-value.expense {
+            color: #e74c3c;
+        }
+
+        .stat-value.balance {
+            color: #3498db;
+        }
+
+        .stat-value.balance.negative {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .warning {
+            background: #fcf3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .warning.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .warning-text {
+            color: #856404;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .expense-list {
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .expense-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .expense-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transform: translateX(5px);
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-category {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .expense-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        .expense-empty {
+            text-align: center;
+            color: #95a5a6;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            height: 250px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            min-height: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            white-space: nowrap;
+            width: 100%;
+            text-align: center;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.85rem;
+        }
+
+        .category-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-text {
+            color: #555;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            input[type="number"],
+            select {
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .bar-label {
+                font-size: 0.7rem;
+            }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #95a5a6;
+            padding: 40px 20px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Budget Simulator</h1>
+
+        <div class="warning" id="warning">
+            <span class="warning-text">⚠️ Warning: Your balance is negative! You're spending more than you earn.</span>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-label">Monthly Income</div>
+                <div class="stat-value income" id="incomeDisplay">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value expense" id="expenseDisplay">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Remaining Balance</div>
+                <div class="stat-value balance" id="balanceDisplay">$0</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Side: Input & Expenses -->
+            <div>
+                <div class="section">
+                    <h2>📊 Set Income</h2>
+                    <div class="input-group">
+                        <label for="incomeInput">Monthly Income:</label>
+                        <input type="number" id="incomeInput" placeholder="0" min="0" step="0.01">
+                        <button onclick="updateIncome()">Set Income</button>
+                    </div>
+                </div>
+
+                <div class="section" style="margin-top: 20px;">
+                    <h2>➕ Add Expense</h2>
+                    <div class="input-group" style="flex-direction: column;">
+                        <label for="categorySelect">Category:</label>
+                        <select id="categorySelect">
+                            <option value="Food">🍔 Food & Dining</option>
+                            <option value="Transport">🚗 Transport</option>
+                            <option value="Entertainment">🎮 Entertainment</option>
+                            <option value="Utilities">💡 Utilities</option>
+                            <option value="Health">🏥 Health & Medical</option>
+                            <option value="Shopping">🛍️ Shopping</option>
+                            <option value="Education">📚 Education</option>
+                            <option value="Other">📌 Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="flex-direction: column; margin-top: 15px;">
+                        <label for="expenseAmount">Amount:</label>
+                        <input type="number" id="expenseAmount" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <button onclick="addExpense()" style="width: 100%; margin-top: 15px;">Add Expense</button>
+                </div>
+
+                <div class="section" style="margin-top: 20px;">
+                    <h2>📝 Expenses</h2>
+                    <div class="expense-list" id="expenseList">
+                        <div class="expense-empty">No expenses yet. Add one to get started!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Chart -->
+            <div>
+                <div class="chart-container">
+                    <h2>📈 Expense Breakdown</h2>
+                    <canvas id="pieChart" width="300" height="300"></canvas>
+                    <div class="category-legend" id="categoryLegend"></div>
+                </div>
+
+                <div class="chart-container" style="margin-top: 20px;">
+                    <h2>Top Spending Categories</h2>
+                    <div class="bar-chart" id="barChart">
+                        <div class="no-data">Add expenses to see the breakdown</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoryColors = {
+            'Food': '#667eea',
+            'Transport': '#764ba2',
+            'Entertainment': '#f093fb',
+            'Utilities': '#4facfe',
+            'Health': '#43e97b',
+            'Shopping': '#fa709a',
+            'Education': '#30cfd0',
+            'Other': '#bbb'
+        };
+
+        let budget = {
+            income: 0,
+            expenses: []
+        };
+
+        function updateIncome() {
+            const income = parseFloat(document.getElementById('incomeInput').value) || 0;
+            budget.income = income;
+            updateDisplay();
+        }
+
+        function addExpense() {
+            const category = document.getElementById('categorySelect').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+
+            if (amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            budget.expenses.push({
+                id: Date.now(),
+                category: category,
+                amount: amount
+            });
+
+            document.getElementById('expenseAmount').value = '';
+            updateDisplay();
+        }
+
+        function deleteExpense(id) {
+            budget.expenses = budget.expenses.filter(exp => exp.id !== id);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Update stats
+            const totalExpenses = budget.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const balance = budget.income - totalExpenses;
+
+            document.getElementById('incomeDisplay').textContent = '$' + budget.income.toFixed(2);
+            document.getElementById('expenseDisplay').textContent = '$' + totalExpenses.toFixed(2);
+
+            const balanceElement = document.getElementById('balanceDisplay');
+            balanceElement.textContent = '$' + balance.toFixed(2);
+
+            // Update warning
+            const warning = document.getElementById('warning');
+            if (balance < 0) {
+                balanceElement.classList.add('negative');
+                warning.classList.add('show');
+            } else {
+                balanceElement.classList.remove('negative');
+                warning.classList.remove('show');
+            }
+
+            // Update expense list
+            updateExpenseList();
+
+            // Update charts
+            updateCharts(totalExpenses);
+        }
+
+        function updateExpenseList() {
+            const expenseList = document.getElementById('expenseList');
+
+            if (budget.expenses.length === 0) {
+                expenseList.innerHTML = '<div class="expense-empty">No expenses yet. Add one to get started!</div>';
+                return;
+            }
+
+            expenseList.innerHTML = budget.expenses.map(exp => `
+                <div class="expense-item">
+                    <div class="expense-info">
+                        <div class="expense-category">${exp.category}</div>
+                    </div>
+                    <div class="expense-amount">$${exp.amount.toFixed(2)}</div>
+                    <button class="delete-btn" onclick="deleteExpense(${exp.id})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function updateCharts(totalExpenses) {
+            if (budget.expenses.length === 0) {
+                document.getElementById('barChart').innerHTML = '<div class="no-data">Add expenses to see the breakdown</div>';
+                drawEmptyPie();
+                document.getElementById('categoryLegend').innerHTML = '';
+                return;
+            }
+
+            // Draw pie chart
+            drawPieChart(totalExpenses);
+
+            // Draw bar chart
+            drawBarChart();
+
+            // Draw legend
+            drawLegend();
+        }
+
+        function drawPieChart(totalExpenses) {
+            const canvas = document.getElementById('pieChart');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let currentAngle = -Math.PI / 2;
+
+            budget.expenses.forEach(exp => {
+                const sliceAngle = (exp.amount / totalExpenses) * 2 * Math.PI;
+
+                // Draw slice
+                ctx.fillStyle = categoryColors[exp.category];
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.lineTo(centerX, centerY);
+                ctx.fill();
+
+                // Draw border
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                currentAngle += sliceAngle;
+            });
+
+            // Draw center circle for donut effect
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw total in center
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Total', centerX, centerY - 10);
+            ctx.fillText('$' + totalExpenses.toFixed(2), centerX, centerY + 15);
+        }
+
+        function drawEmptyPie() {
+            const canvas = document.getElementById('pieChart');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw gray circle
+            ctx.fillStyle = '#e9ecef';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw center circle
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw text
+            ctx.fillStyle = '#95a5a6';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('No Data', centerX, centerY);
+        }
+
+        function drawBarChart() {
+            const container = document.getElementById('barChart');
+            
+            // Group expenses by category
+            const categoryTotals = {};
+            budget.expenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+            });
+
+            // Sort by amount and take top 5
+            const sorted = Object.entries(categoryTotals)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const maxAmount = Math.max(...sorted.map(([, amount]) => amount));
+
+            container.innerHTML = sorted.map(([category, amount]) => {
+                const percentage = (amount / maxAmount) * 100;
+                return `
+                    <div class="bar" style="height: ${percentage}%; background: ${categoryColors[category]};">
+                        <div class="bar-value">$${amount.toFixed(0)}</div>
+                        <div class="bar-label">${category}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function drawLegend() {
+            const container = document.getElementById('categoryLegend');
+
+            const categoryTotals = {};
+            budget.expenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+            });
+
+            container.innerHTML = Object.entries(categoryTotals)
+                .sort((a, b) => b[1] - a[1])
+                .map(([category, amount]) => `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${categoryColors[category]};"></div>
+                        <div class="legend-text">${category} - $${amount.toFixed(2)}</div>
+                    </div>
+                `).join('');
+        }
+
+        // Initialize with sample data on load
+        window.addEventListener('load', () => {
+            document.getElementById('incomeInput').focus();
+        });
+
+        // Allow Enter key to add expense
+        document.getElementById('expenseAmount').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addExpense();
+        });
+
+        document.getElementById('incomeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') updateIncome();
+        });
+    </script>
+</body>
+</html>
+ 

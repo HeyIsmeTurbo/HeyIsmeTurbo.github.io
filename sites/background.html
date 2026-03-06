@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Corner Color Background</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background 0.05s ease-out;
+            overflow: hidden;
+        }
+
+        .info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .corner-indicator {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            opacity: 0.6;
+            pointer-events: none;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .corner-indicator.top-left {
+            top: 10px;
+            left: 10px;
+        }
+
+        .corner-indicator.top-right {
+            top: 10px;
+            right: 10px;
+        }
+
+        .corner-indicator.bottom-left {
+            bottom: 10px;
+            left: 10px;
+        }
+
+        .corner-indicator.bottom-right {
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">Move your mouse around 🎨</div>
+    
+    <div class="corner-indicator top-left">Top Left</div>
+    <div class="corner-indicator top-right">Top Right</div>
+    <div class="corner-indicator bottom-left">Bottom Left</div>
+    <div class="corner-indicator bottom-right">Bottom Right</div>
+
+    <script>
+        const cornerColors = {
+            topLeft: { r: 255, g: 107, b: 107 },      // Red
+            topRight: { r: 255, g: 184, b: 82 },      // Orange
+            bottomLeft: { r: 138, g: 201, b: 255 },   // Blue
+            bottomRight: { r: 78, g: 205, b: 196 }    // Teal
+        };
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            updateBackground();
+        });
+
+        function updateBackground() {
+            // Calculate distances to each corner
+            const topLeftDist = Math.hypot(mouseX, mouseY);
+            const topRightDist = Math.hypot(window.innerWidth - mouseX, mouseY);
+            const bottomLeftDist = Math.hypot(mouseX, window.innerHeight - mouseY);
+            const bottomRightDist = Math.hypot(window.innerWidth - mouseX, window.innerHeight - mouseY);
+
+            // Invert distances to get weights (closer = stronger influence)
+            const maxDist = Math.hypot(window.innerWidth, window.innerHeight);
+            const topLeftWeight = 1 - (topLeftDist / maxDist);
+            const topRightWeight = 1 - (topRightDist / maxDist);
+            const bottomLeftWeight = 1 - (bottomLeftDist / maxDist);
+            const bottomRightWeight = 1 - (bottomRightDist / maxDist);
+
+            // Normalize weights so they sum to 1
+            const totalWeight = topLeftWeight + topRightWeight + bottomLeftWeight + bottomRightWeight;
+            const normalizedTL = topLeftWeight / totalWeight;
+            const normalizedTR = topRightWeight / totalWeight;
+            const normalizedBL = bottomLeftWeight / totalWeight;
+            const normalizedBR = bottomRightWeight / totalWeight;
+
+            // Blend colors based on weights
+            const blendedColor = {
+                r: Math.round(
+                    cornerColors.topLeft.r * normalizedTL +
+                    cornerColors.topRight.r * normalizedTR +
+                    cornerColors.bottomLeft.r * normalizedBL +
+                    cornerColors.bottomRight.r * normalizedBR
+                ),
+                g: Math.round(
+                    cornerColors.topLeft.g * normalizedTL +
+                    cornerColors.topRight.g * normalizedTR +
+                    cornerColors.bottomLeft.g * normalizedBL +
+                    cornerColors.bottomRight.g * normalizedBR
+                ),
+                b: Math.round(
+                    cornerColors.topLeft.b * normalizedTL +
+                    cornerColors.topRight.b * normalizedTR +
+                    cornerColors.bottomLeft.b * normalizedBL +
+                    cornerColors.bottomRight.b * normalizedBR
+                )
+            };
+
+            // Set background color with slight gradient for depth
+            const rgb = `rgb(${blendedColor.r}, ${blendedColor.g}, ${blendedColor.b})`;
+            document.body.style.background = `linear-gradient(135deg, ${rgb} 0%, ${rgb} 100%)`;
+        }
+
+        // Initialize
+        updateBackground();
+    </script>
+</body>
+</html>

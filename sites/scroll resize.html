@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Resize Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: Arial, sans-serif;
+            min-height: 300vh;
+            color: white;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .scroll-info {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 120px 20px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin: 100px 0;
+            text-align: center;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .elements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 30px;
+            justify-items: center;
+            margin: 40px 0;
+        }
+
+        .element {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .circle {
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E72 100%);
+        }
+
+        .square {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+        }
+
+        .diamond {
+            background: linear-gradient(135deg, #95E1D3 0%, #38ada9 100%);
+            transform: rotate(45deg);
+        }
+
+        .star {
+            background: linear-gradient(135deg, #FFB347 0%, #FFA500 100%);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .stat {
+            margin: 4px 0;
+        }
+
+        .stat strong {
+            color: #4ECDC4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Scroll Resize Effect</h1>
+        <div class="scroll-info">Scroll down to see elements grow (or shrink)</div>
+    </div>
+
+    <div class="content">
+        <div class="section">
+            <h2>Section 1 - Starting Small</h2>
+            <div class="elements">
+                <div class="element circle" style="width: 60px; height: 60px;">①</div>
+                <div class="element square" style="width: 60px; height: 60px;">②</div>
+                <div class="element star" style="width: 60px; height: 60px;">③</div>
+                <div class="element diamond" style="width: 60px; height: 60px;">④</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Section 2 - Growing Larger</h2>
+            <div class="elements">
+                <div class="element circle" style="width: 100px; height: 100px;">①</div>
+                <div class="element square" style="width: 100px; height: 100px;">②</div>
+                <div class="element star" style="width: 100px; height: 100px;">③</div>
+                <div class="element diamond" style="width: 100px; height: 100px;">④</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Section 3 - Even Bigger</h2>
+            <div class="elements">
+                <div class="element circle" style="width: 150px; height: 150px;">①</div>
+                <div class="element square" style="width: 150px; height: 150px;">②</div>
+                <div class="element star" style="width: 150px; height: 150px;">③</div>
+                <div class="element diamond" style="width: 150px; height: 150px;">④</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Section 4 - Maximum Size</h2>
+            <div class="elements">
+                <div class="element circle" style="width: 200px; height: 200px;">①</div>
+                <div class="element square" style="width: 200px; height: 200px;">②</div>
+                <div class="element star" style="width: 200px; height: 200px;">③</div>
+                <div class="element diamond" style="width: 200px; height: 200px;">④</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info">
+        <div class="stat">Scroll: <strong id="scrollPercent">0%</strong></div>
+        <div class="stat">Scale: <strong id="scale">1.0x</strong></div>
+    </div>
+
+    <script>
+        const elements = document.querySelectorAll('.element');
+        const scrollPercentSpan = document.getElementById('scrollPercent');
+        const scaleSpan = document.getElementById('scale');
+
+        window.addEventListener('scroll', () => {
+            // Calculate scroll progress (0 to 1)
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollProgress = window.scrollY / scrollHeight;
+            
+            // Calculate scale factor (1 to 3x)
+            const scale = 1 + scrollProgress * 2;
+
+            // Update all elements
+            elements.forEach(el => {
+                el.style.transform = `scale(${scale})`;
+            });
+
+            // Update info
+            scrollPercentSpan.textContent = Math.round(scrollProgress * 100) + '%';
+            scaleSpan.textContent = scale.toFixed(2) + 'x';
+        });
+    </script>
+</body>
+</html>

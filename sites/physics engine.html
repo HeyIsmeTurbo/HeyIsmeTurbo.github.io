@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Engine - Draggable Objects</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .info h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .info p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .draggable {
+            position: absolute;
+            user-select: none;
+            cursor: grab;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .draggable.dragging {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+        }
+
+        .box {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .box1 {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E72 100%);
+            color: white;
+        }
+
+        .box2 {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+        }
+
+        .box3 {
+            background: linear-gradient(135deg, #95E1D3 0%, #38ada9 100%);
+            color: white;
+        }
+
+        .box4 {
+            background: linear-gradient(135deg, #FFB347 0%, #FFA500 100%);
+            color: white;
+        }
+
+        .box5 {
+            background: linear-gradient(135deg, #BB8FCE 0%, #8e44ad 100%);
+            color: white;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #85C1E9 0%, #3498db 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            color: #333;
+            z-index: 100;
+        }
+
+        .stats div {
+            margin: 4px 0;
+        }
+
+        .reset-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .reset-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h2>⚙️ Physics Engine</h2>
+        <p>Drag any object! They move with inertia and momentum - they feel heavy and sluggish.</p>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">Reset Positions</button>
+
+    <div class="stats">
+        <div>Dragging: <strong id="draggingCount">0</strong></div>
+        <div>Velocity: <strong id="velocityInfo">0</strong></div>
+    </div>
+
+    <!-- Draggable objects -->
+    <div class="draggable box box1" style="left: 100px; top: 150px;">1</div>
+    <div class="draggable box box2" style="left: 300px; top: 350px;">2</div>
+    <div class="draggable box box3" style="left: 600px; top: 200px;">3</div>
+    <div class="draggable box box4" style="left: 850px; top: 500px;">4</div>
+    <div class="draggable box box5" style="left: 1100px; top: 100px;">5</div>
+    <div class="draggable circle" style="left: 500px; top: 500px;">⭐</div>
+
+    <script>
+        const draggables = document.querySelectorAll('.draggable');
+        const resetBtn = document.getElementById('resetBtn');
+        const draggingCountElem = document.getElementById('draggingCount');
+        const velocityElem = document.getElementById('velocityInfo');
+
+        // Physics configuration
+        const PHYSICS = {
+            friction: 0.92,      // How quickly objects slow down (0-1)
+            acceleration: 0.15,  // How quickly they respond to dragging (0-1)
+            gravity: 0.6,        // Gravitational acceleration (downward)
+            maxVelocity: 25,     // Max speed
+            boundaries: true
+        };
+
+        let draggingCount = 0;
+        let objectStates = {};
+
+        // Initialize object states
+        draggables.forEach((obj, index) => {
+            objectStates[index] = {
+                x: parseFloat(obj.style.left),
+                y: parseFloat(obj.style.top),
+                vx: 0,
+                vy: 0,
+                targetX: parseFloat(obj.style.left),
+                targetY: parseFloat(obj.style.top),
+                isDragging: false
+            };
+        });
+
+        // Mouse tracking
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Drag handlers
+        draggables.forEach((obj, index) => {
+            let state = objectStates[index];
+            let offsetX = 0;
+            let offsetY = 0;
+
+            obj.addEventListener('mousedown', (e) => {
+                state.isDragging = true;
+                obj.classList.add('dragging');
+                draggingCount++;
+                draggingCountElem.textContent = draggingCount;
+
+                // Calculate offset
+                const rect = obj.getBoundingClientRect();
+                offsetX = e.clientX - rect.left - rect.width / 2;
+                offsetY = e.clientY - rect.top - rect.height / 2;
+
+                // Reset velocity
+                state.vx = 0;
+                state.vy = 0;
+            });
+
+            obj.addEventListener('mousemove', (e) => {
+                if (state.isDragging) {
+                    state.targetX = e.clientX - offsetX;
+                    state.targetY = e.clientY - offsetY;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (state.isDragging) {
+                    state.isDragging = false;
+                    obj.classList.remove('dragging');
+                    draggingCount--;
+                    draggingCountElem.textContent = draggingCount;
+                }
+            });
+        });
+
+        // Physics update loop
+        function updatePhysics() {
+            let maxVel = 0;
+
+            draggables.forEach((obj, index) => {
+                const state = objectStates[index];
+
+                if (state.isDragging) {
+                    // Direct movement while dragging
+                    state.x += (state.targetX - state.x) * 0.8;
+                    state.y += (state.targetY - state.y) * 0.8;
+                } else {
+                    // Apply gravity (always pulling downward)
+                    state.vy += PHYSICS.gravity;
+
+                    // Apply inertia and friction
+                    const dx = state.targetX - state.x;
+                    const dy = state.targetY - state.y;
+
+                    // Calculate velocity toward target (only horizontal)
+                    state.vx += dx * PHYSICS.acceleration;
+                    state.vy += dy * PHYSICS.acceleration * 0.3; // Reduced vertical acceleration
+
+                    // Apply friction
+                    state.vx *= PHYSICS.friction;
+                    state.vy *= PHYSICS.friction;
+
+                    // Cap velocity
+                    const velocity = Math.sqrt(state.vx * state.vx + state.vy * state.vy);
+                    if (velocity > PHYSICS.maxVelocity) {
+                        state.vx = (state.vx / velocity) * PHYSICS.maxVelocity;
+                        state.vy = (state.vy / velocity) * PHYSICS.maxVelocity;
+                    }
+
+                    // Stop if velocity is very small
+                    if (Math.abs(state.vx) < 0.1) state.vx = 0;
+                    if (Math.abs(state.vy) < 0.1) state.vy = 0;
+
+                    // Update position
+                    state.x += state.vx;
+                    state.y += state.vy;
+
+                    // Track max velocity
+                    if (velocity > maxVel) maxVel = velocity;
+                }
+
+                // Boundary collision
+                if (PHYSICS.boundaries) {
+                    const rect = obj.getBoundingClientRect();
+                    const width = rect.width;
+                    const height = rect.height;
+
+                    if (state.x < 0) {
+                        state.x = 0;
+                        state.vx *= -0.6; // Bounce with energy loss
+                    }
+                    if (state.x + width > window.innerWidth) {
+                        state.x = window.innerWidth - width;
+                        state.vx *= -0.6;
+                    }
+                    if (state.y < 0) {
+                        state.y = 0;
+                        state.vy *= -0.6;
+                    }
+                    if (state.y + height > window.innerHeight) {
+                        state.y = window.innerHeight - height;
+                        state.vy = 0; // Stop falling at bottom
+                    }
+                }
+
+                // Update DOM
+                obj.style.left = state.x + 'px';
+                obj.style.top = state.y + 'px';
+            });
+
+            velocityElem.textContent = maxVel.toFixed(1);
+            requestAnimationFrame(updatePhysics);
+        }
+
+        // Reset positions
+        resetBtn.addEventListener('click', () => {
+            const startPositions = [
+                { x: 100, y: 150 },
+                { x: 300, y: 350 },
+                { x: 600, y: 200 },
+                { x: 850, y: 500 },
+                { x: 1100, y: 100 },
+                { x: 500, y: 500 }
+            ];
+
+            draggables.forEach((obj, index) => {
+                const state = objectStates[index];
+                state.x = startPositions[index].x;
+                state.y = startPositions[index].y;
+                state.targetX = startPositions[index].x;
+                state.targetY = startPositions[index].y;
+                state.vx = 0;
+                state.vy = 0;
+            });
+        });
+
+        // Start physics loop
+        updatePhysics();
+    </script>
+</body>
+</html>
