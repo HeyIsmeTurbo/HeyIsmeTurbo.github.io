@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{font-family: system-ui,-apple-system, Arial, sans-serif; margin: 0; padding: 2rem; background:whitesmoke}
+        h2{margin: 1.5rem 0 0.75rem; }
+        .row{
+            display: flex; gap: 16px; align-items: stretch;justify-content: center;flex-wrap: wrap;
+        }
+        .card{
+            background:#fff; border-radius: 12px; padding: 16px; width:260px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.06);
+        }
+        .grid2{
+            display: flex;gap: 16px;margin-top: 24px;
+        }
+        .col{flex: 1;background:#fff;padding: 16px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+    </style>
+</head>
+<body>
+    <h2>Kaard rea</h2>
+    <section class="row">
+        <article class="card"><h3>card1</h3><p>sisu tekst</p></article>
+        <article class="card"><h3>card1</h3><p>sisu tekst</p></article>
+        <article class="card"><h3>card1</h3><p>sisu tekst</p></article>
+    </section>
+    <h2>enne/parast</h2>
+    <section>
+        <div class="col"><strong>enne</strong>kaus ja joondamaa plok</div>
+        <div class="col"><strong>parast</strong>ilusad veerud sama korgus</div>
+    </section>
+</body>
+</html>

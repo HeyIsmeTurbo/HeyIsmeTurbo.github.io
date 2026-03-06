@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .maze {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(19, 20px);
+            grid-template-rows: repeat(21, 20px);
+            gap: 0;
+            border: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .cell {
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .wall {
+            background: linear-gradient(45deg, #333, #555);
+            border: 1px solid #666;
+        }
+
+        .path {
+            background: transparent;
+        }
+
+        .dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: #ffff00;
+            border-radius: 50%;
+        }
+
+        .pacman {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: url('Ellipse 1.png') no-repeat center/contain;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 9;
+            pointer-events: none;
+        }
+
+        #startBtn {
+            position: absolute;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #ffff00;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <button id="startBtn">Start Game</button>
+    <div class="score" id="scoreContainer" style="display:none;">Score: <span id="score">0</span></div>
+    <div class="maze" id="maze" style="display:none;"></div>
+
+    <script>
+        const mazeElement = document.getElementById('maze');
+        const scoreElement = document.getElementById('score');
+
+        // Simple maze layout (1 = wall, 0 = path)
+        const maze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+            [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1],
+            [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+            [1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // grid position variables no longer used by mouse movement
+        let score = 0;
+
+        // Render maze
+        function renderMaze() {
+            mazeElement.innerHTML = '';
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell ' + (maze[y][x] === 1 ? 'wall' : 'path');
+                    if (maze[y][x] === 0) {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        cell.appendChild(dot);
+                    }
+                    mazeElement.appendChild(cell);
+                }
+            }
+        }
+
+        // function to initialize game elements
+        function initGame() {
+            // show maze & score
+            document.getElementById('maze').style.display = '';
+            document.getElementById('scoreContainer').style.display = '';
+            document.getElementById('startBtn').style.display = 'none';
+
+            // Create Pac-Man (player) and track its coordinates
+        const pacman = document.createElement('div');
+        pacman.className = 'pacman';
+        mazeElement.appendChild(pacman);
+
+        let playerX = 0;
+        let playerY = 0;
+            let targetCellX = 0;
+            let targetCellY = 0;
+
+            // mouse movement listener updates player position and target cell
+            mazeElement.addEventListener('mousemove', (e) => {
+                const rect = mazeElement.getBoundingClientRect();
+                playerX = e.clientX - rect.left;
+                playerY = e.clientY - rect.top;
+                pacman.style.left = (playerX - pacman.offsetWidth / 2) + 'px';
+                pacman.style.top = (playerY - pacman.offsetHeight / 2) + 'px';
+
+                // compute target cell indices clamped to grid
+                targetCellX = Math.floor(playerX / 20);
+                targetCellY = Math.floor(playerY / 20);
+                if (targetCellX < 0) targetCellX = 0;
+                if (targetCellX >= maze[0].length) targetCellX = maze[0].length -1;
+                if (targetCellY < 0) targetCellY = 0;
+                if (targetCellY >= maze.length) targetCellY = maze.length -1;
+
+                // eat dot on current cell
+                const cellIndex = targetCellY * 19 + targetCellX;
+                const cell = mazeElement.children[cellIndex];
+                if (cell && cell.querySelector('.dot')) {
+                    cell.querySelector('.dot').remove();
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            });
+
+
+        // enemy variables will be initialized after rendering
+        const enemyImages = ['Group 1.png','Group 2.png','Group 3.png','Group 4.png'];
+        const enemies = [];
+
+        // helper to pick a random open cell coordinate
+        function randomPathCell() {
+            let cx, cy;
+            do {
+                cy = Math.floor(Math.random() * maze.length);
+                cx = Math.floor(Math.random() * maze[0].length);
+            } while (maze[cy][cx] !== 0);
+            return {cx, cy};
+        }
+
+        function updateEnemies() {
+            const rect = mazeElement.getBoundingClientRect();
+            enemies.forEach(enemy => {
+                // if not currently moving to next cell, choose best neighbor
+                if (!enemy.moving) {
+                    let best = null;
+                    let bestDist = Infinity;
+                    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+                        const nx = enemy.cellX + dx;
+                        const ny = enemy.cellY + dy;
+                        if (nx>=0 && nx<maze[0].length && ny>=0 && ny<maze.length && maze[ny][nx]===0) {
+                            const d = Math.abs(targetCellX - nx) + Math.abs(targetCellY - ny);
+                            if (d < bestDist) {
+                                bestDist = d;
+                                best = {nx, ny};
+                            }
+                        }
+                    });
+                    if (best) {
+                        enemy.nextCellX = best.nx;
+                        enemy.nextCellY = best.ny;
+                        enemy.moving = true;
+                    }
+                }
+
+                if (enemy.moving) {
+                    const targetX = enemy.nextCellX * 20;
+                    const targetY = enemy.nextCellY * 20;
+                    const dx = targetX - enemy.x;
+                    const dy = targetY - enemy.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist <= enemy.speed) {
+                        // reached cell
+                        enemy.x = targetX;
+                        enemy.y = targetY;
+                        enemy.cellX = enemy.nextCellX;
+                        enemy.cellY = enemy.nextCellY;
+                        enemy.moving = false;
+                    } else {
+                        enemy.x += (dx / dist) * enemy.speed;
+                        enemy.y += (dy / dist) * enemy.speed;
+                    }
+                    enemy.el.style.left = enemy.x + 'px';
+                    enemy.el.style.top = enemy.y + 'px';
+                }
+            });
+            requestAnimationFrame(updateEnemies);
+        }
+        // updateEnemies() will be started after enemies are created
+
+        
+
+        // keyboard controls removed – player follows mouse now
+
+            renderMaze();
+            // place player in center initially and prepare for enemy spawn
+            const mazeRect = mazeElement.getBoundingClientRect();
+            playerX = mazeRect.width / 2;
+            playerY = mazeRect.height / 2;
+            pacman.style.left = (playerX - pacman.offsetWidth / 2) + 'px';
+            pacman.style.top = (playerY - pacman.offsetHeight / 2) + 'px';
+            targetCellX = Math.floor(playerX / 20);
+            targetCellY = Math.floor(playerY / 20);
+
+            // now that the maze is drawn we can spawn enemies in path cells
+            enemyImages.forEach(src => {
+                const e = document.createElement('div');
+                e.className = 'enemy';
+                e.style.background = `url('${src}') no-repeat center/contain`;
+                const {cx, cy} = randomPathCell();
+                const startX = cx * 20;
+                const startY = cy * 20;
+                e.style.left = startX + 'px';
+                e.style.top = startY + 'px';
+                mazeElement.appendChild(e);
+                enemies.push({el: e, cellX: cx, cellY: cy, x: startX, y: startY, speed: 1});
+            });
+            updateEnemies();
+
+        }
+
+        // wire start button
+        document.getElementById('startBtn').addEventListener('click', initGame);
+    </script>
+</body>
+</html>

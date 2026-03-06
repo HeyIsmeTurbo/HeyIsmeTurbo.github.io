@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color Splash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: #222;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        .splash {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.8;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        .info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">Hold mouse button to grow splash</div>
+    <script>
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFEB3B', '#9C27B0', '#FF9800', '#03A9F4', '#E91E63', '#2196F3', '#4CAF50', '#FFC107', '#FF5722', '#00BCD4'];
+        let currentSplash = null;
+        let growthInterval = null;
+        const maxRadius = 200;
+
+        function startSplash(x, y) {
+            currentSplash = document.createElement('div');
+            currentSplash.className = 'splash';
+            currentSplash.style.left = x + 'px';
+            currentSplash.style.top = y + 'px';
+            currentSplash.style.background = colors[Math.floor(Math.random() * colors.length)];
+            currentSplash.dataset.radius = 0;
+            document.body.appendChild(currentSplash);
+
+            growthInterval = setInterval(() => {
+                let r = parseFloat(currentSplash.dataset.radius) + 2;
+                if (r > maxRadius) r = maxRadius;
+                currentSplash.dataset.radius = r;
+                const s = r * 2;
+                currentSplash.style.width = s + 'px';
+                currentSplash.style.height = s + 'px';
+                currentSplash.style.transform = `translate(-50%, -50%) scale(${r/maxRadius})`;
+            }, 16);
+        }
+
+        function endSplash() {
+            clearInterval(growthInterval);
+            if (!currentSplash) return;
+            // Keep splash visible - no fade out
+            currentSplash = null;
+        }
+
+        document.addEventListener('mousedown', (e) => {
+            startSplash(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (currentSplash) {
+                currentSplash.style.left = e.clientX + 'px';
+                currentSplash.style.top = e.clientY + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            endSplash();
+        });
+
+        window.addEventListener('resize', () => {
+            // ensure splash doesn't exceed bounds but not necessary
+        });
+    </script>
+</body>
+</html>

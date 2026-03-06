@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logical Fallacies Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #95a5a6;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .question-number {
+            color: #667eea;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option.correct {
+            border-color: #27ae60;
+            background: #e8f8f5;
+        }
+
+        .option.incorrect {
+            border-color: #e74c3c;
+            background: #fadbd8;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-text {
+            color: #2c3e50;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-icon {
+            font-size: 1.3rem;
+            min-width: 25px;
+        }
+
+        .explanation {
+            background: #fffbf0;
+            border-left: 4px solid #f39c12;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .explanation-label {
+            color: #d68910;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .explanation-text {
+            color: #7d6608;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-next:active {
+            transform: translateY(0);
+        }
+
+        .btn-restart {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-restart:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        /* Results Screen */
+        .results-screen {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .results-screen.show {
+            display: block;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .score-value {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .results-title {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .results-message {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .results-stats {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .quiz-screen {
+            display: block;
+        }
+
+        .quiz-screen.hidden {
+            display: none;
+        }
+
+        .emoji-result {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .score-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .score-value {
+                font-size: 2.5rem;
+            }
+
+            .results-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="header">
+                <h1>🧠 Logical Fallacies Quiz</h1>
+                <p class="subtitle">Test your knowledge of common reasoning errors</p>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Question 1 of 10</div>
+
+            <div class="question-card">
+                <div class="question-number" id="questionNumber">Question 1</div>
+                <div class="question-text" id="questionText"></div>
+
+                <div class="options" id="optionsContainer"></div>
+
+                <div class="explanation" id="explanation">
+                    <div class="explanation-label">💡 Explanation:</div>
+                    <div class="explanation-text" id="explanationText"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-next" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="emoji-result" id="resultEmoji"></div>
+            <div class="results-title" id="resultsTitle"></div>
+            <div class="results-message" id="resultsMessage"></div>
+
+            <div class="results-stats">
+                <div class="stat">
+                    <div class="stat-label">Correct Answers</div>
+                    <div class="stat-value" id="correctCount">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="scorePercent">0%</div>
+                </div>
+            </div>
+
+            <button class="btn-restart" onclick="restartQuiz()" style="width: 100%;">🔄 Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "\"Everyone is buying this new phone, so it must be the best.\" What fallacy is this?",
+                options: [
+                    { text: "Ad Populum (Appeal to Popularity)", correct: true },
+                    { text: "Straw Man Fallacy", correct: false },
+                    { text: "False Dilemma", correct: false },
+                    { text: "Hasty Generalization", correct: false }
+                ],
+                explanation: "Ad Populum is an appeal to popularity, suggesting something is true because many people believe it. Popularity doesn't determine truth."
+            },
+            {
+                question: "\"If we allow same-sex marriage, the next thing we know people will be marrying their pets.\" What fallacy is this?",
+                options: [
+                    { text: "Slippery Slope", correct: true },
+                    { text: "Begging the Question", correct: false },
+                    { text: "False Cause", correct: false },
+                    { text: "Appeal to Authority", correct: false }
+                ],
+                explanation: "The Slippery Slope fallacy assumes that one event will lead to extreme consequences without evidence that such progression is likely."
+            },
+            {
+                question: "\"You're only saying that because you're a scientist, so I don't need to listen.\" What fallacy is this?",
+                options: [
+                    { text: "Ad Hominem", correct: true },
+                    { text: "Appeal to Authority", correct: false },
+                    { text: "Hasty Generalization", correct: false },
+                    { text: "False Dilemma", correct: false }
+                ],
+                explanation: "Ad Hominem attacks the person making the argument rather than addressing the argument itself. Discrediting the speaker doesn't disprove what they say."
+            },
+            {
+                question: "\"You must either support this policy completely or you're against progress.\" What fallacy is this?",
+                options: [
+                    { text: "False Dilemma", correct: true },
+                    { text: "Straw Man", correct: false },
+                    { text: "Circular Reasoning", correct: false },
+                    { text: "Appeal to Emotion", correct: false }
+                ],
+                explanation: "False Dilemma presents only two options when more are available. This ignores nuance, compromise, or other reasonable positions."
+            },
+            {
+                question: "\"Celebrities use this skincare brand, so it must work.\" What fallacy is this?",
+                options: [
+                    { text: "Appeal to Authority", correct: true },
+                    { text: "Ad Populum", correct: false },
+                    { text: "False Cause", correct: false },
+                    { text: "Hasty Generalization", correct: false }
+                ],
+                explanation: "Appeal to Authority relies on the endorsement of authority figures. A celebrity's opinion on skincare isn't necessarily expert authority."
+            },
+            {
+                question: "\"I've met two rude people from that city, so everyone from there must be rude.\" What fallacy is this?",
+                options: [
+                    { text: "Hasty Generalization", correct: true },
+                    { text: "False Cause", correct: false },
+                    { text: "Straw Man", correct: false },
+                    { text: "Begging the Question", correct: false }
+                ],
+                explanation: "Hasty Generalization draws conclusions from insufficient evidence. Two examples don't represent an entire population."
+            },
+            {
+                question: "\"The website crashed after the new update, so the update must have caused it.\" What fallacy is this?",
+                options: [
+                    { text: "False Cause (Post Hoc)", correct: true },
+                    { text: "Slippery Slope", correct: false },
+                    { text: "Begging the Question", correct: false },
+                    { text: "Circular Reasoning", correct: false }
+                ],
+                explanation: "False Cause assumes that because B happened after A, A must have caused B. Correlation doesn't equal causation."
+            },
+            {
+                question: "\"Vegans say we shouldn't hurt animals, but they eat plants and plants are alive!\" What fallacy is this?",
+                options: [
+                    { text: "Straw Man", correct: true },
+                    { text: "Ad Hominem", correct: false },
+                    { text: "Slippery Slope", correct: false },
+                    { text: "False Dilemma", correct: false }
+                ],
+                explanation: "Straw Man misrepresents an opponent's argument to make it easier to attack. It exaggerates or distorts the original position."
+            },
+            {
+                question: "\"This argument must be true because it's based on this argument.\" What is this called?",
+                options: [
+                    { text: "Circular Reasoning (Begging the Question)", correct: true },
+                    { text: "False Cause", correct: false },
+                    { text: "Hasty Generalization", correct: false },
+                    { text: "Appeal to Emotion", correct: false }
+                ],
+                explanation: "Circular Reasoning uses the conclusion as evidence for itself, creating a logical loop. The argument presupposes what it's trying to prove."
+            },
+            {
+                question: "\"You won't support environmental protection? Think of the future generations!\" What fallacy is this?",
+                options: [
+                    { text: "Appeal to Emotion", correct: true },
+                    { text: "Appeal to Authority", correct: false },
+                    { text: "False Dilemma", correct: false },
+                    { text: "Ad Populum", correct: false }
+                ],
+                explanation: "Appeal to Emotion manipulates feelings rather than using logic. While emotions can be valid, they shouldn't replace rational arguments."
+            },
+            {
+                question: "Which statement is an example of Appeal to Tradition?",
+                options: [
+                    { text: "\"We've always done it this way, so it must be right.\"", correct: true },
+                    { text: "\"Most people believe this, so it's probably true.\"", correct: false },
+                    { text: "\"Experts say this is wrong, so it must be.\"", correct: false },
+                    { text: "\"If we allow this, everything will fall apart.\"", correct: false }
+                ],
+                explanation: "Appeal to Tradition assumes that because something has been done a certain way historically, it must be correct. Old doesn't always mean better."
+            },
+            {
+                question: "What's wrong with this argument: \"Either you're with us or you're a traitor\"?",
+                options: [
+                    { text: "False Dilemma - presents only two extreme options", correct: true },
+                    { text: "Ad Hominem - attacks the person", correct: false },
+                    { text: "Hasty Generalization - jumps to conclusions", correct: false },
+                    { text: "Red Herring - distracts from the main issue", correct: false }
+                ],
+                explanation: "This is a False Dilemma because it ignores the possibility of neutral positions or legitimate disagreement. There are more than two sides."
+            },
+            {
+                question: "\"The economy improved after the president took office, so the president fixed the economy.\" This contains which fallacy?",
+                options: [
+                    { text: "False Cause", correct: true },
+                    { text: "Hasty Generalization", correct: false },
+                    { text: "Straw Man", correct: false },
+                    { text: "Appeal to Authority", correct: false }
+                ],
+                explanation: "This confuses correlation with causation. Economic improvements could result from many factors beyond the president's policies."
+            },
+            {
+                question: "Which is NOT a logical fallacy?",
+                options: [
+                    { text: "Using statistical evidence to support your claim", correct: true },
+                    { text: "\"Everyone likes ice cream, so it's the best dessert\"", correct: false },
+                    { text: "\"You're wrong because you're stupid\"", correct: false },
+                    { text: "\"It must be true because I read it online\"", correct: false }
+                ],
+                explanation: "Using legitimate statistical evidence is sound reasoning, not a fallacy. The other options are examples of Ad Populum, Ad Hominem, and weak authority respectively."
+            },
+            {
+                question: "\"Criminals should go to jail. My opponent disagrees with my jail expansion plan. Therefore, my opponent supports criminals.\" What's wrong here?",
+                options: [
+                    { text: "Straw Man - misrepresents the opponent's position", correct: true },
+                    { text: "False Dilemma - only two choices presented", correct: false },
+                    { text: "Ad Hominem - personal attack", correct: false },
+                    { text: "Begging the Question - circular reasoning", correct: false }
+                ],
+                explanation: "Disagreeing with HOW to handle criminals doesn't mean someone supports crime. This distorts the opponent's actual position."
+            },
+            {
+                question: "\"Cancer rates increased after cell phones became popular, so cell phones cause cancer.\" Why is this flawed?",
+                options: [
+                    { text: "False Cause - time sequence doesn't prove causation", correct: true },
+                    { text: "Circular Reasoning - uses same premise as conclusion", correct: false },
+                    { text: "Red Herring - introduces unrelated information", correct: false },
+                    { text: "Appeal to Emotion - uses fear", correct: false }
+                ],
+                explanation: "Just because events occur in sequence doesn't mean one caused the other. Many variables could influence cancer rates."
+            },
+            {
+                question: "\"If video games are banned, they'll ban action movies next, then all entertainment will be illegal.\" What's the problem?",
+                options: [
+                    { text: "Slippery Slope - assumes consequences without evidence", correct: true },
+                    { text: "Circular Reasoning - repeats the same claim", correct: false },
+                    { text: "Straw Man - misrepresents the argument", correct: false },
+                    { text: "Ad Populum - appeals to majority", correct: false }
+                ],
+                explanation: "Slippery Slope chains assumed consequences together without evidence each step would actually occur."
+            },
+            {
+                question: "\"You can't trust John's political opinion because he drives a Tesla.\" What fallacy is this?",
+                options: [
+                    { text: "Ad Hominem", correct: true },
+                    { text: "Appeal to Authority", correct: false },
+                    { text: "Hasty Generalization", correct: false },
+                    { text: "False Dilemma", correct: false }
+                ],
+                explanation: "Ad Hominem attacks the person instead of their argument. Car choice is irrelevant to the validity of political opinions."
+            },
+            {
+                question: "Which fallacy is demonstrated here: \"We should trust this medical claim because a movie star recommends it\"?",
+                options: [
+                    { text: "Appeal to Authority (from non-expert)", correct: true },
+                    { text: "Ad Populum", correct: false },
+                    { text: "Appeal to Emotion", correct: false },
+                    { text: "Hasty Generalization", correct: false }
+                ],
+                explanation: "A movie star is not a legitimate medical authority. This misuses authority by relying on a celebrity rather than actual experts."
+            },
+            {
+                question: "\"Dogs must be dangerous because my neighbor's dog bit someone, my friend's dog growled, and a dog barked at me.\" What's wrong?",
+                options: [
+                    { text: "Hasty Generalization - limited examples for broad conclusion", correct: true },
+                    { text: "False Cause - confuses correlation with causation", correct: false },
+                    { text: "Straw Man - misrepresents dogs", correct: false },
+                    { text: "Ad Populum - appeals to popularity", correct: false }
+                ],
+                explanation: "Three incidents involving different dogs don't prove all dogs are dangerous. This draws a sweeping conclusion from insufficient evidence."
+            },
+            {
+                question: "\"This pizza must be good because it's from the most expensive restaurant in town.\" What's the issue?",
+                options: [
+                    { text: "Appeal to Authority (misuse of price as quality indicator)", correct: true },
+                    { text: "Ad Populum - everyone thinks it's good", correct: false },
+                    { text: "False Cause - price causes quality", correct: false },
+                    { text: "Circular Reasoning - assumes what it tries to prove", correct: false }
+                ],
+                explanation: "Price doesn't automatically equal quality. This misuses authority by treating cost as a reliable quality indicator."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let selectedOption = null;
+
+        function initQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            selectedOption = null;
+            document.getElementById('quizScreen').classList.remove('hidden');
+            document.getElementById('resultsScreen').classList.remove('show');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = quizData[currentQuestion];
+            answered = false;
+            selectedOption = null;
+
+            // Update progress
+            const progress = ((currentQuestion) / quizData.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${quizData.length}`;
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1}`;
+
+            // Display question
+            document.getElementById('questionText').textContent = question.question;
+
+            // Display options
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = question.options.map((option, index) => `
+                <div class="option" onclick="selectOption(${index}, ${option.correct})">
+                    <div class="option-text">
+                        <span class="option-icon">○</span>
+                        <span>${option.text}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Hide explanation
+            document.getElementById('explanation').classList.remove('show');
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function selectOption(index, isCorrect) {
+            if (answered) return;
+
+            answered = true;
+            selectedOption = index;
+            const options = document.querySelectorAll('.option');
+            const question = quizData[currentQuestion];
+
+            options.forEach((option, i) => {
+                option.classList.add('disabled');
+                if (i === index) {
+                    if (isCorrect) {
+                        option.classList.add('correct');
+                        score++;
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                } else if (question.options[i].correct) {
+                    option.classList.add('correct');
+                }
+            });
+
+            // Show explanation
+            document.getElementById('explanationText').textContent = question.explanation;
+            document.getElementById('explanation').classList.add('show');
+
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+
+            // Change button text on last question
+            if (currentQuestion === quizData.length - 1) {
+                document.getElementById('nextBtn').textContent = 'See Results';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let emoji, title, message;
+
+            if (percentage === 100) {
+                emoji = '🏆';
+                title = 'Perfect Score!';
+                message = 'You\'re a logical fallacy expert! Your reasoning skills are impeccable.';
+            } else if (percentage >= 80) {
+                emoji = '🎉';
+                title = 'Excellent!';
+                message = 'You have a strong understanding of logical fallacies. Well done!';
+            } else if (percentage >= 60) {
+                emoji = '👍';
+                title = 'Good Job!';
+                message = 'You got most of them right. Keep learning to improve further.';
+            } else if (percentage >= 40) {
+                emoji = '📚';
+                title = 'Not Bad!';
+                message = 'You\'re getting there. Review the explanations and try again!';
+            } else {
+                emoji = '💪';
+                title = 'Keep Learning!';
+                message = 'Logical fallacies are tricky! Study the explanations and take the quiz again.';
+            }
+
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultsTitle').textContent = title;
+            document.getElementById('resultsMessage').textContent = message;
+            document.getElementById('correctCount').textContent = `${score} / ${quizData.length}`;
+            document.getElementById('scorePercent').textContent = percentage + '%';
+
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('show');
+        }
+
+        function restartQuiz() {
+            document.getElementById('nextBtn').textContent = 'Next Question';
+            initQuiz();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initQuiz);
+    </script>
+</body>
+</html>

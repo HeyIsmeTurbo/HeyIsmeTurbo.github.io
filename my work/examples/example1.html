@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programming Excuse Generator 🚀</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Comic Sans MS", "Courier New", monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #00ff00;
+        }
+
+        .container {
+            position: relative;
+            max-width: 600px;
+            background: #0a0e27;
+            border: 4px solid #00ff00;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            animation: flicker 0.15s infinite;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #ff00ff;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            background: #1a1a2e;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .lang-btn.active {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .container {
+            position: relative;
+        }
+
+        .excuse-box {
+            background: #0f3460;
+            border: 3px dashed #00ff00;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .excuse-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            animation: slideIn 0.8s ease-out;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes flicker {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-family: "Comic Sans MS", monospace;
+            border: 2px solid #00ff00;
+            background: #1a1a2e;
+            color: #00ff00;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: #1a1a2e;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .copy-btn {
+            border-color: #ff00ff;
+            color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .copy-btn:hover {
+            background: #ff00ff;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #00ff00;
+            color: #1a1a2e;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #00ff00 transparent transparent transparent;
+        }
+
+        .tooltip.show .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .stats {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin: 20px 0;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .excuse-text {
+                font-size: 1.1rem;
+            }
+
+            button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-toggle">
+            <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" onclick="setLanguage('et')">ET</button>
+        </div>
+
+        <h1 id="title">💻 EXCUSE GENERATOR 💻</h1>
+        <p class="subtitle" id="subtitle">&gt; Why Your Code Failed Today</p>
+        
+        <div class="emoji">🤖</div>
+
+        <div class="excuse-box">
+            <p class="excuse-text" id="excuseText">Click "Generate" to summon an excuse...</p>
+        </div>
+
+        <div class="button-group">
+            <button class="generate-btn" id="generateBtn" onclick="generateExcuse()">⚡ Generate</button>
+            <button class="copy-btn tooltip" id="copyBtn" onclick="copyToClipboard()">
+                <span id="copyBtnText">📋 Copy</span>
+                <span class="tooltiptext" id="tooltip">Copied!</span>
+            </button>
+        </div>
+
+        <div class="stats">
+            <p id="statsText">Excuses Generated: <span id="count">0</span></p>
+            <p id="tagline">You're Not Alone™</p>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'en';
+        let excuseCount = 0;
+
+        const translations = {
+            en: {
+                title: '💻 EXCUSE GENERATOR 💻',
+                subtitle: '&gt; Why Your Code Failed Today',
+                generateBtn: '⚡ Generate',
+                copyBtn: '📋 Copy',
+                statsText: 'Excuses Generated:',
+                tagline: 'You\'re Not Alone™',
+                excuseParts: {
+                    beginning: [
+                        "My code was",
+                        "The server just",
+                        "A wild bug",
+                        "My laptop suddenly",
+                        "The algorithm",
+                        "Stack Overflow",
+                        "GitHub",
+                        "Node.js",
+                        "My CSS",
+                        "The internet",
+                        "A quantum fluctuation",
+                        "My dog",
+                        "A solar flare",
+                        "My code review",
+                        "TypeScript"
+                    ],
+                    middle: [
+                        "ate my",
+                        "deleted my",
+                        "corrupted my",
+                        "encrypted my",
+                        "forgot about my",
+                        "turned my",
+                        "broke my",
+                        "confused my",
+                        "overcomplicated my",
+                        "misunderstood my",
+                        "sabotaged my",
+                        "debugged my",
+                        "transpiled my",
+                        "minified my",
+                        "deployed my"
+                    ],
+                    end: [
+                        "code",
+                        "variables",
+                        "functions",
+                        "semicolons",
+                        "brackets",
+                        "promises",
+                        "callbacks",
+                        "dependencies",
+                        "package.json",
+                        "dreams",
+                        "sanity",
+                        "confidence",
+                        "will to live",
+                        "git history",
+                        "production server"
+                    ],
+                    suffix: [
+                        "...and I don't know why yet.",
+                        "...need more coffee ☕",
+                        "...it's not a bug, it's a feature 😎",
+                        "...is this production? 🚀",
+                        "...CTRL+Z isn't working 😭",
+                        "...time to ask on Stack Overflow 🆘",
+                        "...git restore isn't real, right? 😰",
+                        "...been debugging since 3 AM 🌙",
+                        "...I swear it worked yesterday! 🤷",
+                        "...localhost works fine though 💻"
+                    ]
+                },
+                placeholderText: 'Click "Generate" to summon an excuse...'
+            },
+            et: {
+                title: '💻 PÕHJENDI GENERAATOR 💻',
+                subtitle: '&gt; Miks teie kood täna nurjus',
+                generateBtn: '⚡ Genereeri',
+                copyBtn: '📋 Kopeeri',
+                statsText: 'Põhjendeid loodud:',
+                tagline: 'Te pole üksi™',
+                excuseParts: {
+                    beginning: [
+                        "Minu kood oli",
+                        "Serveri just",
+                        "Metslill viga",
+                        "Minu sülearvuti järsku",
+                        "Algoritm",
+                        "Stack Overflow",
+                        "GitHub",
+                        "Node.js",
+                        "Minu CSS",
+                        "Internet",
+                        "Kvantumfluktuatsioon",
+                        "Minu koer",
+                        "Päikese leek",
+                        "Minu koodi läbivaatus",
+                        "TypeScript"
+                    ],
+                    middle: [
+                        "sõi mu",
+                        "kustutus mu",
+                        "rikki mu",
+                        "krüpteeris mu",
+                        "unustus mu",
+                        "muutis mu",
+                        "pureks mu",
+                        "segas mu",
+                        "ülemuudatas mu",
+                        "väältimõistis mu",
+                        "saboteeris mu",
+                        "debugis mu",
+                        "transpileerindis mu",
+                        "minifaierindis mu",
+                        "juurutus mu"
+                    ],
+                    end: [
+                        "koodi",
+                        "muutujaid",
+                        "funktsioone",
+                        "semikooloneid",
+                        "sulgusid",
+                        "lubadusi",
+                        "tagasi kutseid",
+                        "sõltuvusi",
+                        "package.json",
+                        "unenägesid",
+                        "mõistust",
+                        "enesekindlust",
+                        "elutahet",
+                        "git ajalugu",
+                        "tootmisserverit"
+                    ],
+                    suffix: [
+                        "...ja ma ei tea veel miks.",
+                        "...vaja rohkem kohvi ☕",
+                        "...see pole viga, see on funktsioon 😎",
+                        "...kas see on tootmine? 🚀",
+                        "...CTRL+Z ei toimi 😭",
+                        "...aeg küsida Stack Overflow'lt 🆘",
+                        "...git restore pole reaalne, eks? 😰",
+                        "...debugin selle 3 öösel 🌙",
+                        "...ma vandun, see töötas eile! 🤷",
+                        "...localhost töötab siiski hästi 💻"
+                    ]
+                },
+                placeholderText: 'Klõpsake \"Genereeri\", et kutsuda välja põhjend...'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update UI text
+            document.getElementById('title').textContent = translations[lang].title;
+            document.getElementById('subtitle').innerHTML = translations[lang].subtitle;
+            document.getElementById('generateBtn').textContent = translations[lang].generateBtn;
+            document.getElementById('copyBtnText').textContent = translations[lang].copyBtn;
+            document.getElementById('statsText').textContent = translations[lang].statsText + ' ';
+            document.getElementById('tagline').textContent = translations[lang].tagline;
+
+            // Regenerate current excuse in new language if one exists
+            if (excuseCount > 0) {
+                generateExcuse();
+            }
+        }
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function generateExcuse() {
+            const lang = translations[currentLanguage];
+            const beginning = getRandomItem(lang.excuseParts.beginning);
+            const middle = getRandomItem(lang.excuseParts.middle);
+            const end = getRandomItem(lang.excuseParts.end);
+            const suffix = getRandomItem(lang.excuseParts.suffix);
+
+            const excuse = `${beginning} ${middle} ${end}. ${suffix}`;
+            
+            const excuseElement = document.getElementById('excuseText');
+            excuseElement.textContent = excuse;
+            
+            // Reset animation
+            excuseElement.style.animation = 'none';
+            setTimeout(() => {
+                excuseElement.style.animation = 'slideIn 0.8s ease-out';
+            }, 10);
+
+            excuseCount++;
+            document.getElementById('count').textContent = excuseCount;
+        }
+
+        function copyToClipboard() {
+            const excuseText = document.getElementById('excuseText').textContent;
+            const placeholder = translations[currentLanguage].placeholderText;
+            
+            if (excuseText === placeholder) {
+                alert('Generate an excuse first! 🚀');
+                return;
+            }
+
+            navigator.clipboard.writeText(excuseText).then(() => {
+                const tooltip = document.getElementById('tooltip');
+                const copyBtn = document.getElementById('copyBtn');
+                
+                copyBtn.classList.add('show');
+                
+                setTimeout(() => {
+                    copyBtn.classList.remove('show');
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy. Try again!');
+            });
+        }
+
+        // Generate an excuse on page load
+        window.addEventListener('load', () => {
+            generateExcuse();
+        });
+
+        // Allow Enter key to generate new excuses
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateExcuse();
+            }
+        });
+    </script>
+</body>
+</html>
