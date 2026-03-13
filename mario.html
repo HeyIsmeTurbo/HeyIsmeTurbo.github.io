@@ -132,6 +132,7 @@
 			display: block;
 			background: linear-gradient(180deg, #6bd2ff 0%, #9ce7ff 58%, #dff9ff 100%);
 			border: 4px solid #0d233a;
+			transition: filter 220ms ease;
 			image-rendering: pixelated;
 			image-rendering: crisp-edges;
 		}
@@ -250,6 +251,7 @@
 		const GRAVITY = 1900;
 		const MOVE_SPEED = 250;
 		const JUMP_VELOCITY = -660;
+		const STOMP_BOUNCE_VELOCITY = -520;
 		const MAX_FALL_SPEED = 1200;
 		const START_TIME = 120;
 		const SPRITE_PIXEL = 2;
@@ -282,25 +284,32 @@
 		const levelRows = [
 			"....................................................................................................",
 			"....................................................................................................",
-			"...................C............................C...................................................",
+			"...........C.......C...............C............C...............C....................C..............",
 			".......BBB...................?...............BBB....................................................",
 			"........................E......................................................C....................",
-			"............C.....................BBB............................E.............................F....",
+			"........C...C..........C..........BBB..............C.............E....................C........F....",
 			"......?.............................................C..........................................F....",
-			"..P..................BBB.......................BBB.............................................F....",
-			"..............C........................C........................................................F....",
+			"..P......C...........BBB...........C...........BBB...................C.........................F....",
+			"..............C............C...........C............C....................C.....................F....",
 			"....XXX....................XXXX......................XXXX......................................F....",
-			"..................E.......................BBB..................................................F....",
-			".............................C..............................E...................................F....",
+			"..................E...........C...........BBB..............C....................C..............F....",
+			"..................C..........C..........C...................E...............C..................F....",
 			"...........BBB........................BBB.............................BBB......................F....",
-			".....XXXX................XXXX....................XXXX..........................................F....",
-			"..............E...............................E.................................................F....",
+			".....XXXX.......C........XXXX.........C..........XXXX..............C...........................F....",
+			"..............E.................C.............E.........................C........................F....",
 			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....F....",
 			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...FFF..."
 		];
 
 		const MAP_COLUMNS = Math.max(...levelRows.map((row) => row.length));
 		const normalizedLevelRows = levelRows.map((row) => row.padEnd(MAP_COLUMNS, ".").slice(0, MAP_COLUMNS));
+		const screenFilters = [
+			{ name: "Normal", css: "none" },
+			{ name: "Sepia", css: "sepia(0.55) contrast(1.08)" },
+			{ name: "Neon", css: "saturate(1.55) hue-rotate(-28deg)" },
+			{ name: "Arcade", css: "contrast(1.18) brightness(1.05)" },
+			{ name: "Dream", css: "hue-rotate(58deg) saturate(1.25)" }
+		];
 
 		const skyDecor = [
 			{ x: 120, y: 90, w: 88, h: 24, type: "cloud" },
@@ -330,6 +339,19 @@
 		let message = "Press any move key or jump to start";
 		let flashTimer = 0;
 		let lastTime = 0;
+		let activeFilterIndex = 0;
+		let filterToastTime = 0;
+		let filterToastLabel = "";
+
+		function applyScreenFilter(index, announce) {
+			activeFilterIndex = ((index % screenFilters.length) + screenFilters.length) % screenFilters.length;
+			canvas.style.filter = screenFilters[activeFilterIndex].css;
+
+			if (announce) {
+				filterToastLabel = "Filter: " + screenFilters[activeFilterIndex].name;
+				filterToastTime = 1.2;
+			}
+		}
 
 		function parseLevel() {
 			const solids = [];
@@ -413,6 +435,8 @@
 				score = 0;
 				coinCount = 0;
 				lives = 3;
+				applyScreenFilter(0, false);
+				filterToastTime = 0;
 			}
 
 			updateHud();
@@ -560,7 +584,7 @@
 					if (stomp) {
 						enemy.alive = false;
 						enemy.stompedAt = now;
-						player.vy = -360;
+						player.vy = STOMP_BOUNCE_VELOCITY;
 						score += 200;
 						updateHud();
 					} else {
@@ -579,6 +603,9 @@
 					coin.collected = true;
 					coinCount += 1;
 					score += 100;
+					if (coinCount % 5 === 0) {
+						applyScreenFilter(activeFilterIndex + 1, true);
+					}
 					updateHud();
 				}
 			}
@@ -780,6 +807,25 @@
 			ctx.fillText("Reach the flag, stomp enemies, collect coins", canvas.width / 2, canvas.height / 2 + 60);
 		}
 
+		function drawFilterToast() {
+			if (filterToastTime <= 0) {
+				return;
+			}
+
+			ctx.save();
+			ctx.globalAlpha = Math.min(1, filterToastTime * 1.8);
+			ctx.fillStyle = "rgba(8, 15, 24, 0.72)";
+			ctx.fillRect(canvas.width / 2 - 160, 18, 320, 38);
+			ctx.strokeStyle = "#ffe08a";
+			ctx.lineWidth = 2;
+			ctx.strokeRect(canvas.width / 2 - 160, 18, 320, 38);
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#fff5c0";
+			ctx.font = "bold 20px Trebuchet MS";
+			ctx.fillText(filterToastLabel, canvas.width / 2, 44);
+			ctx.restore();
+		}
+
 		function render() {
 			drawBackground();
 
@@ -801,6 +847,7 @@
 			}
 
 			drawPlayer();
+			drawFilterToast();
 			drawOverlay();
 		}
 
@@ -812,6 +859,7 @@
 			const delta = Math.min(0.033, (timestamp - lastTime) / 1000);
 			lastTime = timestamp;
 			flashTimer = Math.max(0, flashTimer - delta);
+			filterToastTime = Math.max(0, filterToastTime - delta);
 
 			if (state === "playing") {
 				timeAccumulator += delta;
