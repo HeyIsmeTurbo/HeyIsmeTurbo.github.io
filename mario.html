@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Mini Mario 1985</title>
+	<style>
+		:root {
+			--sky-top: #5ecbff;
+			--sky-bottom: #b5f0ff;
+			--panel: #11141c;
+			--panel-border: #f4d35e;
+			--ink: #f7f7f2;
+			--accent: #ff5a36;
+			--accent-2: #2f9e44;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			padding: 24px;
+			font-family: "Trebuchet MS", Verdana, sans-serif;
+			color: var(--ink);
+			background:
+				radial-gradient(circle at top, rgba(255, 255, 255, 0.5), transparent 35%),
+				linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+		}
+
+		.game-shell {
+			width: min(100%, 1080px);
+			display: grid;
+			gap: 14px;
+		}
+
+		.header {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			justify-content: space-between;
+			align-items: end;
+		}
+
+		.title-block h1 {
+			margin: 0;
+			font-size: clamp(1.8rem, 4vw, 3rem);
+			line-height: 0.95;
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+			color: #ffef9f;
+			text-shadow: 4px 4px 0 #b43b1d;
+		}
+
+		.title-block p {
+			margin: 8px 0 0;
+			max-width: 46ch;
+			color: #123;
+			font-weight: 700;
+		}
+
+		.hud {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(100px, 1fr));
+			gap: 10px;
+			width: min(100%, 460px);
+		}
+
+		.hud-card {
+			background: var(--panel);
+			border: 4px solid var(--panel-border);
+			padding: 10px 12px;
+			box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+		}
+
+		.hud-card span {
+			display: block;
+			font-size: 0.72rem;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			opacity: 0.8;
+		}
+
+		.hud-card strong {
+			display: block;
+			margin-top: 4px;
+			font-size: 1.2rem;
+		}
+
+		.frame {
+			position: relative;
+			background: linear-gradient(180deg, rgba(10, 19, 33, 0.2), rgba(10, 19, 33, 0.55));
+			border: 6px solid #0e1a29;
+			border-radius: 18px;
+			padding: 18px;
+			box-shadow: 0 22px 50px rgba(16, 30, 45, 0.2);
+			overflow: hidden;
+		}
+
+		.frame::before,
+		.frame::after {
+			content: "";
+			position: absolute;
+			inset: auto;
+			width: 180px;
+			height: 180px;
+			border-radius: 50%;
+			filter: blur(24px);
+			opacity: 0.35;
+			pointer-events: none;
+		}
+
+		.frame::before {
+			top: -40px;
+			right: -40px;
+			background: #fff1a8;
+		}
+
+		.frame::after {
+			left: -30px;
+			bottom: -30px;
+			background: #ff8e72;
+		}
+
+		canvas {
+			width: 100%;
+			height: auto;
+			display: block;
+			background: linear-gradient(180deg, #6bd2ff 0%, #9ce7ff 58%, #dff9ff 100%);
+			border: 4px solid #0d233a;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+		}
+
+		.controls {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.controls p {
+			margin: 0;
+			color: #0d233a;
+			font-weight: 700;
+		}
+
+		.touch-controls {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		button {
+			appearance: none;
+			border: 0;
+			border-radius: 14px;
+			background: var(--panel);
+			color: var(--ink);
+			padding: 12px 18px;
+			font: inherit;
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			box-shadow: inset 0 -4px 0 rgba(255, 255, 255, 0.06), 0 6px 0 rgba(0, 0, 0, 0.25);
+			cursor: pointer;
+			touch-action: manipulation;
+		}
+
+		button.primary {
+			background: var(--accent);
+		}
+
+		button.secondary {
+			background: var(--accent-2);
+		}
+
+		button:active,
+		button.active {
+			transform: translateY(3px);
+			box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08), 0 3px 0 rgba(0, 0, 0, 0.25);
+		}
+
+		@media (max-width: 720px) {
+			body {
+				padding: 12px;
+			}
+
+			.hud {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				width: 100%;
+			}
+
+			.controls {
+				justify-content: center;
+				text-align: center;
+			}
+		}
+	</style>
+</head>
+<body>
+	<main class="game-shell">
+		<section class="header">
+			<div class="title-block">
+				<h1>Mini Mario<br>1985</h1>
+				<p>Run, jump, stomp goombas, grab coins, and touch the flagpole before the timer runs out.</p>
+			</div>
+			<div class="hud">
+				<div class="hud-card"><span>Score</span><strong id="score">000000</strong></div>
+				<div class="hud-card"><span>Coins</span><strong id="coins">00</strong></div>
+				<div class="hud-card"><span>Lives</span><strong id="lives">3</strong></div>
+				<div class="hud-card"><span>Time</span><strong id="time">120</strong></div>
+			</div>
+		</section>
+
+		<section class="frame">
+			<canvas id="game" width="960" height="540" aria-label="Mini Mario platform game"></canvas>
+		</section>
+
+		<section class="controls">
+			<p>Keyboard: A / Left and D / Right to move, W / Space / Up to jump, R to restart.</p>
+			<div class="touch-controls" aria-label="Touch controls">
+				<button id="leftBtn" type="button">Left</button>
+				<button id="rightBtn" type="button">Right</button>
+				<button id="jumpBtn" class="secondary" type="button">Jump</button>
+				<button id="restartBtn" class="primary" type="button">Restart</button>
+			</div>
+		</section>
+	</main>
+
+	<script>
+		const canvas = document.getElementById("game");
+		const ctx = canvas.getContext("2d");
+		ctx.imageSmoothingEnabled = false;
+
+		const hud = {
+			score: document.getElementById("score"),
+			coins: document.getElementById("coins"),
+			lives: document.getElementById("lives"),
+			time: document.getElementById("time")
+		};
+
+		const TILE = 32;
+		const GRAVITY = 1900;
+		const MOVE_SPEED = 250;
+		const JUMP_VELOCITY = -660;
+		const MAX_FALL_SPEED = 1200;
+		const START_TIME = 120;
+		const SPRITE_PIXEL = 2;
+
+		const marioSpriteRows = [
+			"....RRRRRRRR....",
+			"..RRRRRRRRRRRR..",
+			"..OOOYYYYOOY....",
+			".YYOOYYYYOOYYYY.",
+			".YOYOYYYYYOYYYYY",
+			".YOYYYYYYOYYYY..",
+			"..OOYYYYYOOOOO..",
+			"....YYYYYYYYYY..",
+			"..OOOROOOOROO...",
+			".OOOOROOOOROOOO.",
+			"OOOOORRRRROOOOO.",
+			"OOOOORRRRROOOOO.",
+			"YYOORRYYRRYYOYY.",
+			"YYYYRRRRRRRRYYYY",
+			"YYYYRRRRRRRRYYYY",
+			"...OOOO..OOOO..."
+		];
+
+		const spritePalette = {
+			R: "#ff1b1c",
+			O: "#7a6f2d",
+			Y: "#f8b11b"
+		};
+
+		const levelRows = [
+			"....................................................................................................",
+			"....................................................................................................",
+			"...................C............................C...................................................",
+			".......BBB...................?...............BBB....................................................",
+			"........................E......................................................C....................",
+			"............C.....................BBB............................E.............................F....",
+			"......?.............................................C..........................................F....",
+			"..P..................BBB.......................BBB.............................................F....",
+			"..............C........................C........................................................F....",
+			"....XXX....................XXXX......................XXXX......................................F....",
+			"..................E.......................BBB..................................................F....",
+			".............................C..............................E...................................F....",
+			"...........BBB........................BBB.............................BBB......................F....",
+			".....XXXX................XXXX....................XXXX..........................................F....",
+			"..............E...............................E.................................................F....",
+			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....F....",
+			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...FFF..."
+		];
+
+		const MAP_COLUMNS = Math.max(...levelRows.map((row) => row.length));
+		const normalizedLevelRows = levelRows.map((row) => row.padEnd(MAP_COLUMNS, ".").slice(0, MAP_COLUMNS));
+
+		const skyDecor = [
+			{ x: 120, y: 90, w: 88, h: 24, type: "cloud" },
+			{ x: 520, y: 70, w: 112, h: 28, type: "cloud" },
+			{ x: 980, y: 120, w: 92, h: 24, type: "cloud" },
+			{ x: 1480, y: 88, w: 104, h: 28, type: "cloud" },
+			{ x: 240, y: 460, w: 80, h: 20, type: "bush" },
+			{ x: 1180, y: 458, w: 96, h: 24, type: "bush" },
+			{ x: 1830, y: 456, w: 84, h: 22, type: "bush" }
+		];
+
+		const keys = {
+			left: false,
+			right: false,
+			jump: false
+		};
+
+		let world = null;
+		let player = null;
+		let camera = { x: 0, y: 0 };
+		let score = 0;
+		let coinCount = 0;
+		let lives = 3;
+		let timeLeft = START_TIME;
+		let timeAccumulator = 0;
+		let state = "ready";
+		let message = "Press any move key or jump to start";
+		let flashTimer = 0;
+		let lastTime = 0;
+
+		function parseLevel() {
+			const solids = [];
+			const coins = [];
+			const enemies = [];
+			const flags = [];
+			let spawn = { x: 2 * TILE, y: 12 * TILE };
+
+			normalizedLevelRows.forEach((row, rowIndex) => {
+				[...row].forEach((cell, colIndex) => {
+					const x = colIndex * TILE;
+					const y = rowIndex * TILE;
+
+					if (cell === "X" || cell === "B" || cell === "?") {
+						solids.push({
+							x,
+							y,
+							w: TILE,
+							h: TILE,
+							type: cell === "X" ? "ground" : cell === "B" ? "brick" : "question"
+						});
+					}
+
+					if (cell === "C") {
+						coins.push({ x: x + 8, y: y + 6, w: 16, h: 20, collected: false, bob: Math.random() * Math.PI * 2 });
+					}
+
+					if (cell === "E") {
+						enemies.push({ x: x + 2, y, w: 28, h: 28, vx: -65, vy: 0, alive: true, stompedAt: 0 });
+					}
+
+					if (cell === "F") {
+						flags.push({ x, y, w: TILE, h: TILE });
+					}
+
+					if (cell === "P") {
+						spawn = { x, y };
+					}
+				});
+			});
+
+			return {
+				solids,
+				coins,
+				enemies,
+				flags,
+				width: MAP_COLUMNS * TILE,
+				height: levelRows.length * TILE,
+				spawn
+			};
+		}
+
+		function createPlayer() {
+			return {
+				x: world.spawn.x,
+				y: world.spawn.y,
+				w: marioSpriteRows[0].length * SPRITE_PIXEL,
+				h: marioSpriteRows.length * SPRITE_PIXEL,
+				vx: 0,
+				vy: 0,
+				facing: 1,
+				grounded: false,
+				jumpQueued: false,
+				jumpGrace: 0,
+				invulnerable: 0
+			};
+		}
+
+		function resetGame(fullReset) {
+			world = parseLevel();
+			player = createPlayer();
+			camera.x = 0;
+			camera.y = 0;
+			timeLeft = START_TIME;
+			timeAccumulator = 0;
+			state = "ready";
+			message = "Press any move key or jump to start";
+			flashTimer = 0;
+
+			if (fullReset) {
+				score = 0;
+				coinCount = 0;
+				lives = 3;
+			}
+
+			updateHud();
+		}
+
+		function loseLife() {
+			if (state === "won" || state === "gameover") {
+				return;
+			}
+
+			lives -= 1;
+			updateHud();
+
+			if (lives <= 0) {
+				state = "gameover";
+				message = "Game over - press R or Restart";
+				return;
+			}
+
+			player = createPlayer();
+			state = "ready";
+			message = "Ouch! Press a move key or jump";
+			flashTimer = 0.8;
+		}
+
+		function clamp(value, min, max) {
+			return Math.max(min, Math.min(max, value));
+		}
+
+		function rectsOverlap(a, b) {
+			return a.x < b.x + b.w &&
+				a.x + a.w > b.x &&
+				a.y < b.y + b.h &&
+				a.y + a.h > b.y;
+		}
+
+		function isSolidAt(rect) {
+			return world.solids.find((tile) => rectsOverlap(rect, tile));
+		}
+
+		function updatePlayer(delta) {
+			const moving = Number(keys.right) - Number(keys.left);
+			player.vx = moving * MOVE_SPEED;
+
+			if (moving !== 0) {
+				player.facing = moving;
+			}
+
+			player.jumpGrace = player.grounded ? 0.12 : Math.max(0, player.jumpGrace - delta);
+
+			if (keys.jump && !player.jumpQueued) {
+				player.jumpQueued = true;
+			}
+
+			if (player.jumpQueued && (player.grounded || player.jumpGrace > 0)) {
+				player.vy = JUMP_VELOCITY;
+				player.grounded = false;
+				player.jumpGrace = 0;
+				player.jumpQueued = false;
+			}
+
+			if (!keys.jump && player.vy < -280) {
+				player.vy += 1200 * delta;
+			}
+
+			player.vy = Math.min(MAX_FALL_SPEED, player.vy + GRAVITY * delta);
+			player.x += player.vx * delta;
+
+			let hit = isSolidAt(player);
+			while (hit) {
+				if (player.vx > 0) {
+					player.x = hit.x - player.w;
+				} else if (player.vx < 0) {
+					player.x = hit.x + hit.w;
+				}
+				hit = isSolidAt(player);
+				player.vx = 0;
+			}
+
+			player.y += player.vy * delta;
+			player.grounded = false;
+			hit = isSolidAt(player);
+			while (hit) {
+				if (player.vy > 0) {
+					player.y = hit.y - player.h;
+					player.grounded = true;
+					player.jumpQueued = false;
+				} else if (player.vy < 0) {
+					player.y = hit.y + hit.h;
+				}
+				player.vy = 0;
+				hit = isSolidAt(player);
+			}
+
+			player.x = clamp(player.x, 0, world.width - player.w);
+			player.invulnerable = Math.max(0, player.invulnerable - delta);
+
+			if (player.y > world.height + 80) {
+				loseLife();
+			}
+		}
+
+		function updateEnemies(delta, now) {
+			for (const enemy of world.enemies) {
+				if (!enemy.alive) {
+					continue;
+				}
+
+				enemy.vy = Math.min(MAX_FALL_SPEED, enemy.vy + GRAVITY * delta);
+				enemy.x += enemy.vx * delta;
+				let hit = isSolidAt(enemy);
+
+				while (hit) {
+					enemy.x += enemy.vx > 0 ? -1 : 1;
+					enemy.vx *= -1;
+					hit = isSolidAt(enemy);
+				}
+
+				const edgeProbeX = enemy.vx < 0 ? enemy.x - 2 : enemy.x + enemy.w + 2;
+				const edgeProbe = {
+					x: edgeProbeX,
+					y: enemy.y + enemy.h + 2,
+					w: 2,
+					h: 2
+				};
+
+				if (!isSolidAt(edgeProbe)) {
+					enemy.vx *= -1;
+				}
+
+				enemy.y += enemy.vy * delta;
+				hit = isSolidAt(enemy);
+				while (hit) {
+					if (enemy.vy > 0) {
+						enemy.y = hit.y - enemy.h;
+					} else if (enemy.vy < 0) {
+						enemy.y = hit.y + hit.h;
+					}
+					enemy.vy = 0;
+					hit = isSolidAt(enemy);
+				}
+
+				if (rectsOverlap(player, enemy) && player.invulnerable <= 0) {
+					const stomp = player.vy > 120 && player.y + player.h - enemy.y < 18;
+					if (stomp) {
+						enemy.alive = false;
+						enemy.stompedAt = now;
+						player.vy = -360;
+						score += 200;
+						updateHud();
+					} else {
+						player.invulnerable = 1.2;
+						loseLife();
+						return;
+					}
+				}
+			}
+		}
+
+		function updateCollectibles(delta) {
+			for (const coin of world.coins) {
+				coin.bob += delta * 5;
+				if (!coin.collected && rectsOverlap(player, coin)) {
+					coin.collected = true;
+					coinCount += 1;
+					score += 100;
+					updateHud();
+				}
+			}
+
+			const flagPole = world.flags[0];
+			if (flagPole && player.x + player.w > flagPole.x && player.y + player.h > flagPole.y) {
+				state = "won";
+				score += Math.max(0, Math.floor(timeLeft) * 10) + 1000;
+				updateHud();
+				message = "Course clear! Press R or Restart";
+			}
+		}
+
+		function updateHud() {
+			hud.score.textContent = String(score).padStart(6, "0");
+			hud.coins.textContent = String(coinCount).padStart(2, "0");
+			hud.lives.textContent = String(lives);
+			hud.time.textContent = String(Math.max(0, Math.ceil(timeLeft))).padStart(3, "0");
+		}
+
+		function updateCamera() {
+			const targetX = player.x - canvas.width * 0.35;
+			camera.x += (targetX - camera.x) * 0.1;
+			camera.x = clamp(camera.x, 0, world.width - canvas.width);
+		}
+
+		function drawBackground() {
+			ctx.fillStyle = "#7ad8ff";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			ctx.fillStyle = "#d8f7ff";
+			ctx.fillRect(0, canvas.height - 118, canvas.width, 118);
+
+			const groundTop = Math.round(world.height - TILE - camera.y);
+			const groundHeight = canvas.height - groundTop;
+			if (groundHeight > 0) {
+				ctx.fillStyle = "#58b44b";
+				ctx.fillRect(0, groundTop, canvas.width, 12);
+				ctx.fillStyle = "#c98537";
+				ctx.fillRect(0, groundTop + 12, canvas.width, groundHeight - 12);
+				ctx.fillStyle = "#8b4d16";
+				for (let x = -((camera.x * 0.35) % 48); x < canvas.width + 48; x += 48) {
+					ctx.fillRect(Math.round(x), groundTop + 28, 22, 10);
+					ctx.fillRect(Math.round(x + 26), groundTop + 50, 14, 8);
+				}
+			}
+
+			for (const item of skyDecor) {
+				const x = item.x - camera.x * 0.45;
+				const y = item.y;
+				if (item.type === "cloud") {
+					ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+					ctx.fillRect(Math.round(x), y + 10, item.w, item.h);
+					ctx.fillRect(Math.round(x + 18), y, item.w - 36, item.h + 16);
+				} else {
+					ctx.fillStyle = "#2b9348";
+					ctx.fillRect(Math.round(x), y, item.w, item.h);
+					ctx.fillStyle = "#55a630";
+					ctx.fillRect(Math.round(x + 10), y - 10, item.w - 20, item.h);
+				}
+			}
+		}
+
+		function drawTile(tile) {
+			const x = Math.round(tile.x - camera.x);
+			const y = Math.round(tile.y - camera.y);
+
+			if (tile.type === "ground") {
+				ctx.fillStyle = "#55b847";
+				ctx.fillRect(x, y, tile.w, 6);
+				ctx.fillStyle = "#b86f2b";
+				ctx.fillRect(x, y + 6, tile.w, tile.h - 6);
+				ctx.fillStyle = "#7c4b16";
+				ctx.fillRect(x, y + 22, tile.w, 10);
+				ctx.fillStyle = "#e6aa5f";
+				ctx.fillRect(x + 3, y + 8, 4, 4);
+				ctx.fillRect(x + 5, y + 5, 6, 6);
+				ctx.fillRect(x + 18, y + 12, 6, 6);
+			} else if (tile.type === "brick") {
+				ctx.fillStyle = "#b85c2e";
+				ctx.fillRect(x, y, tile.w, tile.h);
+				ctx.fillStyle = "#7c3417";
+				ctx.fillRect(x, y + 14, tile.w, 4);
+				ctx.fillRect(x + 14, y, 4, tile.h);
+			} else {
+				ctx.fillStyle = "#ffca3a";
+				ctx.fillRect(x, y, tile.w, tile.h);
+				ctx.fillStyle = "#996c00";
+				ctx.fillRect(x + 12, y + 6, 8, 20);
+				ctx.fillRect(x + 6, y + 12, 20, 8);
+			}
+		}
+
+		function drawCoin(coin) {
+			if (coin.collected) {
+				return;
+			}
+			const x = Math.round(coin.x - camera.x);
+			const y = Math.round(coin.y + Math.sin(coin.bob) * 4);
+			ctx.fillStyle = "#ffd23f";
+			ctx.fillRect(x, y, coin.w, coin.h);
+			ctx.fillStyle = "#ffef8a";
+			ctx.fillRect(x + 4, y + 3, 8, 14);
+		}
+
+		function drawEnemy(enemy) {
+			if (!enemy.alive) {
+				return;
+			}
+			const x = Math.round(enemy.x - camera.x);
+			const y = Math.round(enemy.y);
+
+			ctx.fillStyle = "#8d5524";
+			ctx.fillRect(x + 4, y + 10, 20, 16);
+			ctx.fillStyle = "#5d3418";
+			ctx.fillRect(x, y + 18, 28, 10);
+			ctx.fillStyle = "#f8f1e5";
+			ctx.fillRect(x + 4, y + 12, 4, 4);
+			ctx.fillRect(x + 20, y + 12, 4, 4);
+		}
+
+		function drawFlag() {
+			const flagTop = world.flags[0];
+			const flagBottom = world.flags[world.flags.length - 1];
+			if (!flagTop || !flagBottom) {
+				return;
+			}
+
+			const poleX = flagTop.x - camera.x + 12;
+			ctx.fillStyle = "#f4f1de";
+			ctx.fillRect(Math.round(poleX), flagTop.y, 8, flagBottom.y + TILE - flagTop.y);
+
+			ctx.fillStyle = "#2ec4b6";
+			ctx.fillRect(Math.round(poleX + 8), flagTop.y + 16, 34, 22);
+			ctx.fillStyle = "#ffffff";
+			ctx.fillRect(Math.round(poleX + 22), flagTop.y + 24, 8, 8);
+		}
+
+		function drawPlayer() {
+			const x = Math.round(player.x - camera.x);
+			const y = Math.round(player.y);
+			const blink = player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0;
+			if (blink) {
+				return;
+			}
+
+			ctx.save();
+			if (player.facing < 0) {
+				ctx.translate(x + player.w, 0);
+				ctx.scale(-1, 1);
+				drawMarioSprite(0, y);
+			} else {
+				drawMarioSprite(x, y);
+			}
+			ctx.restore();
+		}
+
+		function drawMarioSprite(x, y) {
+			const runFrame = player.grounded && Math.abs(player.vx) > 10 ? Math.floor(performance.now() / 120) % 2 : 0;
+			for (let rowIndex = 0; rowIndex < marioSpriteRows.length; rowIndex += 1) {
+				let row = marioSpriteRows[rowIndex];
+				if (runFrame === 1 && rowIndex >= 12) {
+					row = rowIndex === 12 ? "YYORRYYYYRRYOYY." : rowIndex === 13 ? "YYYRRRRRRRRRYYYY" : rowIndex === 14 ? "..YRRRR..RRRYY.." : "..OOOO..OOOO....";
+				}
+
+				for (let columnIndex = 0; columnIndex < row.length; columnIndex += 1) {
+					const pixel = row[columnIndex];
+					if (!spritePalette[pixel]) {
+						continue;
+					}
+
+					ctx.fillStyle = spritePalette[pixel];
+					ctx.fillRect(
+						x + columnIndex * SPRITE_PIXEL,
+						y + rowIndex * SPRITE_PIXEL,
+						SPRITE_PIXEL,
+						SPRITE_PIXEL
+					);
+				}
+			}
+		}
+
+		function drawOverlay() {
+			if (state === "playing" && flashTimer <= 0) {
+				return;
+			}
+
+			ctx.fillStyle = flashTimer > 0 ? "rgba(255, 255, 255, 0.35)" : "rgba(8, 15, 24, 0.42)";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#fff6bf";
+			ctx.font = "bold 46px Trebuchet MS";
+			ctx.fillText(state === "won" ? "COURSE CLEAR" : state === "gameover" ? "GAME OVER" : "MINI MARIO", canvas.width / 2, canvas.height / 2 - 24);
+			ctx.font = "bold 24px Trebuchet MS";
+			ctx.fillStyle = "#ffffff";
+			ctx.fillText(message, canvas.width / 2, canvas.height / 2 + 20);
+			ctx.font = "bold 18px Trebuchet MS";
+			ctx.fillText("Reach the flag, stomp enemies, collect coins", canvas.width / 2, canvas.height / 2 + 60);
+		}
+
+		function render() {
+			drawBackground();
+
+			for (const tile of world.solids) {
+				if (tile.x + tile.w < camera.x - TILE || tile.x > camera.x + canvas.width + TILE) {
+					continue;
+				}
+				drawTile(tile);
+			}
+
+			drawFlag();
+
+			for (const coin of world.coins) {
+				drawCoin(coin);
+			}
+
+			for (const enemy of world.enemies) {
+				drawEnemy(enemy);
+			}
+
+			drawPlayer();
+			drawOverlay();
+		}
+
+		function tick(timestamp) {
+			if (!lastTime) {
+				lastTime = timestamp;
+			}
+
+			const delta = Math.min(0.033, (timestamp - lastTime) / 1000);
+			lastTime = timestamp;
+			flashTimer = Math.max(0, flashTimer - delta);
+
+			if (state === "playing") {
+				timeAccumulator += delta;
+				if (timeAccumulator >= 1) {
+					const ticks = Math.floor(timeAccumulator);
+					timeAccumulator -= ticks;
+					timeLeft -= ticks;
+					if (timeLeft <= 0) {
+						timeLeft = 0;
+						loseLife();
+					}
+					updateHud();
+				}
+
+				updatePlayer(delta);
+				updateEnemies(delta, timestamp / 1000);
+				updateCollectibles(delta);
+				updateCamera();
+			} else if ((keys.left || keys.right || keys.jump) && state === "ready") {
+				state = "playing";
+				message = "";
+			}
+
+			render();
+			requestAnimationFrame(tick);
+		}
+
+		function setButtonState(id, active) {
+			const element = document.getElementById(id);
+			element.classList.toggle("active", active);
+		}
+
+		function bindTouchButton(id, keyName) {
+			const element = document.getElementById(id);
+			const press = (event) => {
+				event.preventDefault();
+				keys[keyName] = true;
+				if (state === "ready") {
+					state = "playing";
+					message = "";
+				}
+				setButtonState(id, true);
+			};
+			const release = (event) => {
+				event.preventDefault();
+				keys[keyName] = false;
+				if (keyName === "jump") {
+					player.jumpQueued = false;
+				}
+				setButtonState(id, false);
+			};
+
+			element.addEventListener("pointerdown", press);
+			element.addEventListener("pointerup", release);
+			element.addEventListener("pointerleave", release);
+			element.addEventListener("pointercancel", release);
+		}
+
+		document.addEventListener("keydown", (event) => {
+			if (["ArrowLeft", "a", "A"].includes(event.key)) {
+				keys.left = true;
+			}
+			if (["ArrowRight", "d", "D"].includes(event.key)) {
+				keys.right = true;
+			}
+			if (["ArrowUp", "w", "W", " "].includes(event.key)) {
+				keys.jump = true;
+			}
+			if (["r", "R"].includes(event.key)) {
+				resetGame(true);
+			}
+			if (state === "ready" && (keys.left || keys.right || keys.jump)) {
+				state = "playing";
+				message = "";
+			}
+		});
+
+		document.addEventListener("keyup", (event) => {
+			if (["ArrowLeft", "a", "A"].includes(event.key)) {
+				keys.left = false;
+			}
+			if (["ArrowRight", "d", "D"].includes(event.key)) {
+				keys.right = false;
+			}
+			if (["ArrowUp", "w", "W", " "].includes(event.key)) {
+				keys.jump = false;
+				player.jumpQueued = false;
+			}
+		});
+
+		document.getElementById("restartBtn").addEventListener("click", () => resetGame(true));
+
+		bindTouchButton("leftBtn", "left");
+		bindTouchButton("rightBtn", "right");
+		bindTouchButton("jumpBtn", "jump");
+
+		resetGame(true);
+		requestAnimationFrame(tick);
+	</script>
+</body>
+</html>
