@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Text Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin: 30px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .output-box {
+            min-height: 100px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            align-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .letter {
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+            animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+            padding: 2px 4px;
+        }
+
+        .space {
+            width: 8px;
+            height: 24px;
+            display: inline-block;
+            animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info {
+            font-size: 14px;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+
+        .char-count {
+            font-size: 14px;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+
+        .clear-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 2px solid white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .clear-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Smooth Text Animation</h1>
+
+        <div class="input-group">
+            <label for="textInput">Type something:</label>
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="textInput" 
+                    placeholder="Start typing here..."
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+
+        <div class="output-box" id="outputBox"></div>
+
+        <div class="char-count">
+            Characters: <span id="charCount">0</span>
+        </div>
+
+        <div class="info">
+            Each letter slides in smoothly from below with a slight delay ⬆️
+        </div>
+
+        <button class="clear-btn" id="clearBtn">Clear All</button>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const outputBox = document.getElementById('outputBox');
+        const charCount = document.getElementById('charCount');
+        const clearBtn = document.getElementById('clearBtn');
+        let displayedText = '';
+
+        // Configuration
+        const DELAY_BETWEEN_LETTERS = 500; // milliseconds
+        let animationTimeout;
+
+        textInput.addEventListener('input', (e) => {
+            const currentText = e.target.value;
+            
+            // Clear any pending animations
+            clearTimeout(animationTimeout);
+
+            // Find which letters are new
+            const newText = currentText.slice(displayedText.length);
+            
+            if (currentText.length > displayedText.length) {
+                // Letters were added
+                animateNewLetters(newText, displayedText.length);
+                displayedText = currentText;
+            } else if (currentText.length < displayedText.length) {
+                // Letters were removed
+                displayedText = currentText;
+                renderText(displayedText);
+            }
+
+            charCount.textContent = currentText.length;
+        });
+
+        function animateNewLetters(newLetters, startIndex) {
+            let index = 0;
+
+            function addNextLetter() {
+                if (index < newLetters.length) {
+                    const letter = newLetters[index];
+                    renderText(displayedText.slice(0, startIndex + index + 1));
+                    index++;
+                    animationTimeout = setTimeout(addNextLetter, DELAY_BETWEEN_LETTERS);
+                }
+            }
+
+            addNextLetter();
+        }
+
+        function renderText(text) {
+            outputBox.innerHTML = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const delay = i * DELAY_BETWEEN_LETTERS;
+
+                if (char === ' ') {
+                    // Create space element
+                    const spaceEl = document.createElement('div');
+                    spaceEl.className = 'space';
+                    spaceEl.style.animationDelay = delay + 'ms';
+                    outputBox.appendChild(spaceEl);
+                } else {
+                    // Create letter element
+                    const letterEl = document.createElement('span');
+                    letterEl.className = 'letter';
+                    letterEl.textContent = char;
+                    letterEl.style.animationDelay = delay + 'ms';
+                    outputBox.appendChild(letterEl);
+                }
+            }
+        }
+
+        clearBtn.addEventListener('click', () => {
+            textInput.value = '';
+            outputBox.innerHTML = '';
+            displayedText = '';
+            charCount.textContent = '0';
+            clearTimeout(animationTimeout);
+            textInput.focus();
+        });
+
+        // Focus input on page load
+        textInput.focus();
+    </script>
+</body>
+</html>

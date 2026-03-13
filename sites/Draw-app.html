@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draw App</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .draw-container {
+            background: #fff;
+            border: 2px solid #ccc;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        canvas {
+            background: #fff;
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+        .toolbar {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="draw-container">
+        <div class="toolbar">
+            <button id="clearBtn">Clear</button>
+            <label>Color: <input type="color" id="colorPicker" value="#222" /></label>
+            <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3" /></label>
+        </div>
+        <canvas id="board" width="600" height="400"></canvas>
+    </div>
+    <script>
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+        let color = document.getElementById('colorPicker').value;
+        let size = document.getElementById('sizePicker').value;
+
+        canvas.addEventListener('mousedown', e => {
+            drawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = size;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+
+        document.getElementById('clearBtn').onclick = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+        document.getElementById('colorPicker').oninput = e => {
+            color = e.target.value;
+        };
+        document.getElementById('sizePicker').oninput = e => {
+            size = e.target.value;
+        };
+    </script>
+</body>
+</html>

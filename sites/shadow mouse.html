@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Mouse Effect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            margin: 50px 0;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-size: 3em;
+        }
+
+        h2 {
+            font-size: 2.5em;
+        }
+
+        h3 {
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Title One</h1>
+    <h2>Title Two</h2>
+    <h3>Title Three</h3>
+    <h1>Another Big Title</h1>
+    <h2>Smaller Title</h2>
+    <h3>Last Title</h3>
+
+    <script>
+        const titles = document.querySelectorAll('h1, h2, h3');
+        const shadowFactor = 10; // pixels
+
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            titles.forEach(title => {
+                const rect = title.getBoundingClientRect();
+                const tx = rect.left + rect.width / 2;
+                const ty = rect.top + rect.height / 2;
+
+                const dx = tx - mouseX;
+                const dy = ty - mouseY;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > 0) {
+                    const offsetX = (dx / dist) * shadowFactor;
+                    const offsetY = (dy / dist) * shadowFactor;
+                    title.style.textShadow = `${offsetX}px ${offsetY}px 5px rgba(0,0,0,0.5)`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Style Game</title>
+    <style>
+        body {
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .game-container {
+            position: relative;
+            width: 380px;
+            height: 420px;
+            background: #111;
+            border: 4px solid #ffe600;
+        }
+        .cell {
+            width: 20px;
+            height: 20px;
+            float: left;
+            box-sizing: border-box;
+        }
+        .wall {
+            background: #444;
+            border: 1px solid #666;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #ffe600;
+            border-radius: 50%;
+            margin: 7px auto;
+        }
+        .pacman {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: url('pacman.png') no-repeat center/contain, #ffe600;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .ghost {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="game"></div>
+    <div id="scoreDisplay">Score: <span id="score">0</span></div>
+    <div id="gameOverScreen" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);color:#ffe600;z-index:100;justify-content:center;align-items:center;flex-direction:column;font-size:2.5em;font-family:sans-serif;">
+        <div>Game Over!</div>
+        <button id="restartBtn" style="margin-top:30px;font-size:1em;padding:0.5em 2em;cursor:pointer;">Restart</button>
+    </div>
+    <div id="winScreen" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);color:#ffe600;z-index:100;justify-content:center;align-items:center;flex-direction:column;font-size:2.5em;font-family:sans-serif;">
+        <div>You Win!</div>
+        <div style="font-size:1em;margin-top:20px;">Final Score: <span id="finalScore">0</span></div>
+        <button id="restartBtnWin" style="margin-top:30px;font-size:1em;padding:0.5em 2em;cursor:pointer;">Restart</button>
+    </div>
+    <script>
+        // Maze layout: 0 = path, 1 = wall
+        const maze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+            [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1],
+            [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1],
+            [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+            [1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+        const game = document.getElementById('game');
+        // Render maze
+        for (let y = 0; y < maze.length; y++) {
+            for (let x = 0; x < maze[y].length; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell ' + (maze[y][x] === 1 ? 'wall' : '');
+                cell.style.left = (x * 20) + 'px';
+                cell.style.top = (y * 20) + 'px';
+                cell.style.position = 'absolute';
+                if (maze[y][x] === 0) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    cell.appendChild(dot);
+                }
+                game.appendChild(cell);
+            }
+        }
+        // Pac-Man
+        let pacmanX = 9, pacmanY = 15;
+        const pacman = document.createElement('div');
+        pacman.className = 'pacman';
+        game.appendChild(pacman);
+        function updatePacman() {
+            pacman.style.left = (pacmanX * 20) + 'px';
+            pacman.style.top = (pacmanY * 20) + 'px';
+        }
+        updatePacman();
+        // Ghosts
+        const ghostSprites = ['red-ghost.png','purple-ghost.png','green-ghost.png','yellow-ghost.png'];
+        // Find a spawn position at least 5 blocks away from Pac-Man
+        function randomGhostSpawn() {
+            let valid = [];
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[0].length; x++) {
+                    if (maze[y][x] === 0) {
+                        const dist = Math.abs(pacmanX - x) + Math.abs(pacmanY - y);
+                        if (dist >= 5) {
+                            valid.push({x, y});
+                        }
+                    }
+                }
+            }
+            if (valid.length === 0) return {x: 1, y: 1};
+            return valid[Math.floor(Math.random() * valid.length)];
+        }
+        const ghosts = ghostSprites.map((sprite, i) => {
+            const spawn = randomGhostSpawn();
+            const ghost = document.createElement('div');
+            ghost.className = 'ghost';
+            ghost.style.background = `url('${sprite}') no-repeat center/contain`;
+            ghost.style.left = (spawn.x * 20) + 'px';
+            ghost.style.top = (spawn.y * 20) + 'px';
+            game.appendChild(ghost);
+            return {el: ghost, x: spawn.x, y: spawn.y};
+        });
+        // Arrow key movement
+        document.addEventListener('keydown', e => {
+            if (gameOver) return;
+            let dx = 0, dy = 0;
+            switch(e.key) {
+                case 'ArrowUp': dy = -1; break;
+                case 'ArrowDown': dy = 1; break;
+                case 'ArrowLeft': dx = -1; break;
+                case 'ArrowRight': dx = 1; break;
+                default: return;
+            }
+            const newX = pacmanX + dx;
+            const newY = pacmanY + dy;
+            if (newX >= 0 && newX < maze[0].length && newY >= 0 && newY < maze.length && maze[newY][newX] === 0) {
+                pacmanX = newX;
+                pacmanY = newY;
+                updatePacman();
+                // Eat dot
+                const cellIndex = newY * maze[0].length + newX;
+                const cell = game.children[cellIndex];
+                if (cell && cell.querySelector('.dot')) {
+                    cell.querySelector('.dot').remove();
+                    addScore(10);
+                    dotsLeft--;
+                    if (dotsLeft === 0) {
+                        showWin();
+                    }
+                }
+            }
+        });
+        // Simple ghost movement (random)
+        let gameOver = false;
+        let score = 0;
+        let totalDots = 0;
+        // Count total dots
+        for (let y = 0; y < maze.length; y++) {
+            for (let x = 0; x < maze[y].length; x++) {
+                if (maze[y][x] === 0) totalDots++;
+            }
+        }
+        let dotsLeft = totalDots;
+
+        function showGameOver() {
+            gameOver = true;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+        function showWin() {
+            gameOver = true;
+            document.getElementById('winScreen').style.display = 'flex';
+            document.getElementById('finalScore').textContent = score;
+        }
+        function moveGhosts() {
+            if (gameOver) return;
+            ghosts.forEach(ghost => {
+                let bestMove = {x: ghost.x, y: ghost.y};
+                let minDist = Math.abs(pacmanX - ghost.x) + Math.abs(pacmanY - ghost.y);
+                [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dx,dy]) => {
+                    const nx = ghost.x + dx;
+                    const ny = ghost.y + dy;
+                    if (nx >= 0 && nx < maze[0].length && ny >= 0 && ny < maze.length && maze[ny][nx] === 0) {
+                        const dist = Math.abs(pacmanX - nx) + Math.abs(pacmanY - ny);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestMove = {x: nx, y: ny};
+                        }
+                    }
+                });
+                ghost.x = bestMove.x;
+                ghost.y = bestMove.y;
+                ghost.el.style.left = (ghost.x * 20) + 'px';
+                ghost.el.style.top = (ghost.y * 20) + 'px';
+                // Collision
+                if (ghost.x === pacmanX && ghost.y === pacmanY) {
+                    showGameOver();
+                }
+            });
+        }
+        setInterval(moveGhosts, 500);
+        document.getElementById('restartBtn').onclick = () => {
+            window.location.reload();
+        };
+        document.getElementById('restartBtnWin').onclick = () => {
+            window.location.reload();
+        };
+    </script>
+</body>
+</html>

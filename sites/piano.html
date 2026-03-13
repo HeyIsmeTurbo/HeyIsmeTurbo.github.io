@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Keystroke Sounds</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        textarea {
+            width: 80%;
+            height: 200px;
+            font-size: 18px;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 5px;
+        }
+
+        p {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Type to Play Sounds!</h1>
+    <textarea placeholder="Start typing..."></textarea>
+    <p>Each keystroke generates a random beep sound.</p>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playRandomBeep() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Random frequency between 200 and 1000 Hz
+            const frequency = Math.random() * 800 + 200;
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+            // Random duration between 0.1 and 0.5 seconds
+            const duration = Math.random() * 0.4 + 0.1;
+
+            // Fade in and out for smoother sound
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Play sound on any key press
+            playRandomBeep();
+        });
+    </script>
+</body>
+</html>
