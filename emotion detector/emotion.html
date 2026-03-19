@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Emotion Lens</title>
+	<style>
+		:root {
+			--bg-1: #0b132b;
+			--bg-2: #1c2541;
+			--bg-3: #3a506b;
+			--panel: rgba(11, 19, 43, 0.78);
+			--line: rgba(255, 255, 255, 0.2);
+			--text: #f6f7fb;
+			--muted: #c7c9d7;
+			--accent: #f4d35e;
+			--good: #76e39b;
+			--warn: #ff9f68;
+			--danger: #ff6b6b;
+			--shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+			--radius: 20px;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 10% 10%, rgba(244, 211, 94, 0.25) 0%, rgba(244, 211, 94, 0) 35%),
+				radial-gradient(circle at 90% 15%, rgba(118, 227, 155, 0.2) 0%, rgba(118, 227, 155, 0) 40%),
+				linear-gradient(140deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+			display: grid;
+			place-items: center;
+			padding: 20px;
+			overflow-x: hidden;
+		}
+
+		.grain {
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			opacity: 0.09;
+			background-image: radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 0);
+			background-size: 4px 4px;
+			z-index: 0;
+		}
+
+		.app {
+			width: min(1050px, 100%);
+			position: relative;
+			z-index: 1;
+			display: grid;
+			gap: 18px;
+			animation: rise 650ms ease-out;
+		}
+
+		@keyframes rise {
+			from {
+				opacity: 0;
+				transform: translateY(18px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.header {
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 16px;
+			flex-wrap: wrap;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: clamp(1.6rem, 2.8vw, 2.7rem);
+			line-height: 1;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+		}
+
+		.subtitle {
+			margin-top: 8px;
+			color: var(--muted);
+			max-width: 54ch;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid var(--line);
+			border-radius: var(--radius);
+			backdrop-filter: blur(8px);
+			box-shadow: var(--shadow);
+		}
+
+		.main {
+			display: grid;
+			grid-template-columns: 1.2fr 0.8fr;
+			gap: 18px;
+		}
+
+		.viewer {
+			padding: 16px;
+		}
+
+		.video-wrap {
+			position: relative;
+			border-radius: 16px;
+			overflow: hidden;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			aspect-ratio: 16 / 10;
+			background: #000;
+		}
+
+		video,
+		canvas {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.controls {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 12px;
+		}
+
+		button {
+			appearance: none;
+			border: 0;
+			border-radius: 12px;
+			padding: 10px 14px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: transform 120ms ease, filter 120ms ease;
+		}
+
+		button:hover {
+			transform: translateY(-1px);
+			filter: brightness(1.05);
+		}
+
+		button:active {
+			transform: translateY(0);
+		}
+
+		button.primary {
+			background: var(--accent);
+			color: #1d1e28;
+		}
+
+		button.secondary {
+			background: rgba(255, 255, 255, 0.15);
+			color: var(--text);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+		}
+
+		button:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+			transform: none;
+		}
+
+		.sidebar {
+			padding: 16px;
+			display: grid;
+			grid-template-rows: auto auto 1fr;
+			gap: 14px;
+		}
+
+		.status {
+			padding: 12px;
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			background: rgba(255, 255, 255, 0.08);
+			min-height: 60px;
+			display: grid;
+			align-content: center;
+			gap: 4px;
+		}
+
+		.status strong {
+			font-size: 1.1rem;
+		}
+
+		.status small {
+			color: var(--muted);
+		}
+
+		.meter-grid {
+			display: grid;
+			gap: 8px;
+		}
+
+		.meter-row {
+			display: grid;
+			grid-template-columns: 88px 1fr 54px;
+			gap: 8px;
+			align-items: center;
+			font-size: 0.95rem;
+		}
+
+		.meter-row .name {
+			color: var(--muted);
+			text-transform: capitalize;
+		}
+
+		.bar {
+			width: 100%;
+			height: 9px;
+			background: rgba(255, 255, 255, 0.14);
+			border-radius: 999px;
+			overflow: hidden;
+		}
+
+		.fill {
+			height: 100%;
+			width: 0;
+			border-radius: 999px;
+			transition: width 220ms ease;
+			background: linear-gradient(90deg, #7ad6ff 0%, #f4d35e 100%);
+		}
+
+		.hint {
+			margin: 0;
+			color: var(--muted);
+			font-size: 0.92rem;
+			line-height: 1.4;
+		}
+
+		.ok {
+			color: var(--good);
+		}
+
+		.warn {
+			color: var(--warn);
+		}
+
+		.danger {
+			color: var(--danger);
+		}
+
+		.emoji-container {
+			position: fixed;
+			pointer-events: none;
+			z-index: 999;
+			font-size: 80px;
+			filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+		}
+
+		.emoji-pop {
+			animation: popOut 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		@keyframes popOut {
+			0% {
+				opacity: 0;
+				transform: scale(0) translate(0, 0);
+			}
+			50% {
+				opacity: 1;
+				transform: scale(1.2);
+			}
+			100% {
+				opacity: 0;
+				transform: scale(0.8) translate(var(--tx), var(--ty));
+			}
+		}
+
+		@media (max-width: 900px) {
+			.main {
+				grid-template-columns: 1fr;
+			}
+
+			.meter-row {
+				grid-template-columns: 76px 1fr 44px;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="grain" aria-hidden="true"></div>
+
+	<div id="emojiContainer"></div>
+
+	<main class="app">
+		<section class="header">
+			<div>
+				<h1>Emotion Lens</h1>
+				<p class="subtitle">
+					A browser-based emotion detector. It uses your webcam and runs expression analysis directly in the page.
+				</p>
+			</div>
+		</section>
+
+		<section class="main">
+			<article class="panel viewer">
+				<div class="video-wrap">
+					<video id="video" autoplay muted playsinline></video>
+					<canvas id="overlay"></canvas>
+				</div>
+				<div class="controls">
+					<button id="startBtn" class="primary">Start Camera</button>
+					<button id="stopBtn" class="secondary" disabled>Stop</button>
+				</div>
+			</article>
+
+			<aside class="panel sidebar">
+				<div class="status" id="statusBox" aria-live="polite">
+					<strong id="statusTitle">Waiting to start</strong>
+					<small id="statusText">Click Start Camera to begin.</small>
+				</div>
+
+				<div>
+					<h3 style="margin: 0 0 8px 0; letter-spacing: 0.04em;">Detected Emotion</h3>
+					<p id="topEmotion" style="margin: 0; font-size: 1.5rem; font-weight: 700;">--</p>
+				</div>
+
+				<div>
+					<h3 style="margin: 0 0 8px 0; letter-spacing: 0.04em;">Expression Scores</h3>
+					<div id="meterGrid" class="meter-grid"></div>
+					<p class="hint" style="margin-top: 10px;">
+						Tip: keep your face visible and well lit. This is an estimate, not a medical or psychological diagnosis.
+					</p>
+				</div>
+			</aside>
+		</section>
+	</main>
+
+	<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+	<script>
+		const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+		const EXPRESSIONS = ["neutral", "happy", "sad", "angry", "fearful", "disgusted", "surprised"];
+		const EMOTION_EMOJIS = {
+			neutral: "😐",
+			happy: "😊",
+			sad: "😢",
+			angry: "😠",
+			fearful: "😨",
+			disgusted: "🤢",
+			surprised: "😮"
+		};
+		const emotionThresholds = new Map();
+
+		const video = document.getElementById("video");
+		const overlay = document.getElementById("overlay");
+		const startBtn = document.getElementById("startBtn");
+		const stopBtn = document.getElementById("stopBtn");
+		const statusTitle = document.getElementById("statusTitle");
+		const statusText = document.getElementById("statusText");
+		const statusBox = document.getElementById("statusBox");
+		const topEmotion = document.getElementById("topEmotion");
+		const meterGrid = document.getElementById("meterGrid");
+
+		const meterRefs = new Map();
+		let stream = null;
+		let detectTimer = null;
+		let modelsReady = false;
+		const emojiContainerEl = document.getElementById("emojiContainer");
+
+		function setStatus(title, text, stateClass) {
+			statusTitle.textContent = title;
+			statusText.textContent = text;
+			statusBox.classList.remove("ok", "warn", "danger");
+			if (stateClass) statusBox.classList.add(stateClass);
+		}
+
+		function initMeters() {
+			meterGrid.innerHTML = "";
+			for (const label of EXPRESSIONS) {
+				const row = document.createElement("div");
+				row.className = "meter-row";
+
+				const name = document.createElement("span");
+				name.className = "name";
+				name.textContent = label;
+
+				const bar = document.createElement("div");
+				bar.className = "bar";
+
+				const fill = document.createElement("div");
+				fill.className = "fill";
+				bar.appendChild(fill);
+
+				const value = document.createElement("span");
+				value.textContent = "0%";
+
+				row.append(name, bar, value);
+				meterGrid.appendChild(row);
+				meterRefs.set(label, { fill, value });
+			}
+		}
+
+		function popOutEmoji(emotion) {
+			const emoji = EMOTION_EMOJIS[emotion];
+			if (!emoji) return;
+
+			const emojiEl = document.createElement("div");
+			emojiEl.className = "emoji-container";
+			emojiEl.textContent = emoji;
+
+			const randomX = (Math.random() - 0.5) * 400;
+			const randomY = (Math.random() - 0.5) * 400 - 200;
+
+			emojiEl.style.setProperty("--tx", `${randomX}px`);
+			emojiEl.style.setProperty("--ty", `${randomY}px`);
+			emojiEl.style.left = window.innerWidth / 2 + "px";
+			emojiEl.style.top = window.innerHeight / 2 + "px";
+			emojiEl.style.transform = "translate(-50%, -50%)";
+
+			emojiContainerEl.appendChild(emojiEl);
+
+			setTimeout(() => {
+				emojiEl.classList.add("emoji-pop");
+			}, 10);
+
+			setTimeout(() => {
+				emojiEl.remove();
+			}, 900);
+		}
+
+		function updateMeters(expressions = {}) {
+			for (const label of EXPRESSIONS) {
+				const score = Math.max(0, Math.min(1, expressions[label] || 0));
+				const pct = Math.round(score * 100);
+				const meter = meterRefs.get(label);
+				if (!meter) continue;
+				meter.fill.style.width = `${pct}%`;
+				meter.value.textContent = `${pct}%`;
+
+				// Check if emotion just crossed 50% threshold
+				const wasBelowThreshold = (emotionThresholds.get(label) || 0) < 50;
+				const isAboveThreshold = pct >= 50;
+
+				if (wasBelowThreshold && isAboveThreshold) {
+					popOutEmoji(label);
+				}
+
+				emotionThresholds.set(label, pct);
+			}
+		}
+
+		function getTopExpression(expressions = {}) {
+			let winner = "--";
+			let max = -1;
+			for (const [label, score] of Object.entries(expressions)) {
+				if (score > max) {
+					max = score;
+					winner = label;
+				}
+			}
+			return { winner, confidence: max };
+		}
+
+		async function loadModels() {
+			if (modelsReady) return;
+
+			setStatus("Loading AI models", "Downloading expression model files...", "warn");
+			await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+			await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+
+			modelsReady = true;
+			setStatus("Models loaded", "You can start camera detection.", "ok");
+		}
+
+		async function startCamera() {
+			if (stream) return;
+
+			await loadModels();
+
+			setStatus("Requesting camera", "Allow webcam access when prompted.", "warn");
+			stream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					facingMode: "user",
+					width: { ideal: 1280 },
+					height: { ideal: 720 }
+				},
+				audio: false
+			});
+
+			video.srcObject = stream;
+			await new Promise((resolve) => {
+				video.onloadedmetadata = resolve;
+			});
+
+			overlay.width = video.videoWidth;
+			overlay.height = video.videoHeight;
+
+			startBtn.disabled = true;
+			stopBtn.disabled = false;
+			setStatus("Detecting", "Face and expression analysis is running.", "ok");
+
+			runDetectionLoop();
+		}
+
+		function stopCamera() {
+			if (detectTimer) {
+				clearInterval(detectTimer);
+				detectTimer = null;
+			}
+
+			const ctx = overlay.getContext("2d");
+			ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+			if (stream) {
+				for (const track of stream.getTracks()) {
+					track.stop();
+				}
+				stream = null;
+			}
+
+			video.srcObject = null;
+			updateMeters({});
+			topEmotion.textContent = "--";
+			startBtn.disabled = false;
+			stopBtn.disabled = true;
+			setStatus("Stopped", "Camera and analysis are paused.", "warn");
+		}
+
+		function runDetectionLoop() {
+			if (detectTimer) clearInterval(detectTimer);
+
+			detectTimer = setInterval(async () => {
+				if (!video || video.readyState < 2) return;
+
+				const result = await faceapi
+					.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+					.withFaceExpressions();
+
+				const dims = { width: video.videoWidth, height: video.videoHeight };
+				faceapi.matchDimensions(overlay, dims);
+				const ctx = overlay.getContext("2d");
+				ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+				if (!result) {
+					topEmotion.textContent = "No face detected";
+					updateMeters({});
+					setStatus("Looking for face", "Center your face in frame.", "warn");
+					return;
+				}
+
+				const resized = faceapi.resizeResults(result, dims);
+				faceapi.draw.drawDetections(overlay, resized);
+
+				updateMeters(result.expressions);
+				const { winner, confidence } = getTopExpression(result.expressions);
+				const pct = Math.round((confidence || 0) * 100);
+				topEmotion.textContent = `${winner} (${pct}%)`;
+				setStatus("Detecting", "Live expression readout active.", "ok");
+			}, 280);
+		}
+
+		async function handleStart() {
+			try {
+				await startCamera();
+			} catch (err) {
+				const message = err && err.message ? err.message : "Camera access failed.";
+				setStatus("Cannot start", message, "danger");
+				startBtn.disabled = false;
+				stopBtn.disabled = true;
+			}
+		}
+
+		startBtn.addEventListener("click", handleStart);
+		stopBtn.addEventListener("click", stopCamera);
+
+		window.addEventListener("beforeunload", () => {
+			stopCamera();
+		});
+
+		initMeters();
+	</script>
+</body>
+</html>
