@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Motion Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <span class="deco-orb orb-a" aria-hidden="true"></span>
+      <span class="deco-orb orb-b" aria-hidden="true"></span>
+      <span class="deco-line" aria-hidden="true"></span>
+
+      <header class="hero">
+        <p class="kicker">Vision + Audio Alert</p>
+        <h1>Camera Motion Detector</h1>
+        <p class="subtitle">Move an object in front of your camera to detect direction and play sound.</p>
+      </header>
+
+      <div class="controls">
+        <button id="startBtn" class="lever-btn" aria-label="Start Camera">
+          <span class="lever-label">Start Camera</span>
+          <span class="lever-track" aria-hidden="true">
+            <span class="lever-knob"></span>
+          </span>
+        </button>
+        <button id="stopBtn" disabled>Stop Camera</button>
+      </div>
+
+      <p id="status">Status: idle</p>
+
+      <section class="direction-panel" aria-label="Direction indicator">
+        <div id="arrowUp" class="arrow up" aria-label="Up">↑</div>
+        <div id="arrowLeft" class="arrow left" aria-label="Left">←</div>
+        <div class="arrow center" aria-hidden="true">●</div>
+        <div id="arrowRight" class="arrow right" aria-label="Right">→</div>
+        <div id="arrowDown" class="arrow down" aria-label="Down">↓</div>
+      </section>
+
+      <section class="video-panel">
+        <div class="video-wrap">
+          <span class="camera-badge" aria-hidden="true">LIVE FEED</span>
+          <video id="video" autoplay muted playsinline></video>
+          <span class="frame-corner corner-tl" aria-hidden="true"></span>
+          <span class="frame-corner corner-tr" aria-hidden="true"></span>
+          <span class="frame-corner corner-bl" aria-hidden="true"></span>
+          <span class="frame-corner corner-br" aria-hidden="true"></span>
+        </div>
+        <canvas id="workCanvas" width="320" height="240"></canvas>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

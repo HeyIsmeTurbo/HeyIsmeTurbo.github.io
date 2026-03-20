@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cat Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="sticker-layer" aria-hidden="true">
+      <span class="sticker s1">🐱</span>
+      <span class="sticker s2">😺</span>
+      <span class="sticker s3">🐈</span>
+      <span class="sticker s4">🐾</span>
+      <span class="sticker s5">😸</span>
+      <span class="sticker s6">🐱</span>
+    </div>
+
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">External API Demo</p>
+        <h1>Meet Some Cats</h1>
+        <p class="subtitle">
+          Real cat images and breed info loaded from The Cat API.
+        </p>
+        <label class="slider-wrap" for="catCount">
+          <span>Number of cats: <strong id="catCountValue">12</strong></span>
+          <input id="catCount" type="range" min="4" max="30" value="12" />
+        </label>
+        <button id="reloadBtn" type="button">Load More Cats</button>
+
+        <section class="music-dock" aria-label="Background music controls">
+          <p class="music-title">Background Songs by Kevin MacLeod</p>
+          <label for="trackPicker">Choose a track</label>
+          <select id="trackPicker">
+            <option value="carefree">Carefree</option>
+            <option value="monkeys">Monkeys Spinning Monkeys</option>
+          </select>
+          <audio id="bgMusic" controls preload="none"></audio>
+          <p class="music-credit">
+            Music by Kevin MacLeod (<a href="https://incompetech.com" target="_blank" rel="noreferrer">incompetech.com</a>)
+            Licensed under Creative Commons: By Attribution 4.0
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>
+          </p>
+        </section>
+      </header>
+
+      <section aria-live="polite" id="status" class="status"></section>
+
+      <section id="catGrid" class="cat-grid" aria-label="Cat cards"></section>
+    </main>
+
+    <section id="profileModal" class="profile-modal" aria-hidden="true">
+      <article class="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileName">
+        <button id="closeProfileBtn" class="close-profile-btn" type="button" aria-label="Close profile">Close</button>
+        <img id="profileImage" class="profile-image" src="" alt="" />
+        <div class="profile-content">
+          <h2 id="profileName" class="profile-name"></h2>
+          <p id="profileOrigin" class="profile-line"></p>
+          <p id="profileTemperament" class="profile-line"></p>
+          <p id="profileLifeSpan" class="profile-line"></p>
+          <p id="profileWeight" class="profile-line"></p>
+          <p id="profileDescription" class="profile-description"></p>
+        </div>
+      </article>
+    </section>
+
+    <script src="kassid.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "kassid-cats-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js app that loads cat cards from an external API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}

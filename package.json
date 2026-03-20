@@ -1,0 +1,12 @@
+{
+  "name": "turvamees-motion-detector",
+  "version": "1.0.0",
+  "description": "Node.js web app that detects object movement direction from camera feed",
+  "main": "turvamees.JS",
+  "scripts": {
+    "start": "node turvamees.JS"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
