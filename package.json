@@ -1,12 +1,27 @@
 {
-  "name": "turvamees-motion-detector",
+  "name": "muusikaline-pilt",
   "version": "1.0.0",
-  "description": "Node.js web app that detects object movement direction from camera feed",
-  "main": "turvamees.JS",
+  "description": "Upload an image and find matching music on YouTube",
+  "main": "fotomuusika.js",
   "scripts": {
-    "start": "node turvamees.JS"
+    "start": "node fotomuusika.js",
+    "dev": "node fotomuusika.js"
   },
+  "keywords": [
+    "image",
+    "music",
+    "youtube"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.19.2"
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.0",
+    "yt-search": "^2.13.1"
+  },
+  "overrides": {
+    "minimatch": "^3.1.5"
   }
 }
