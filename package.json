@@ -1,27 +1,17 @@
 {
-  "name": "muusikaline-pilt",
+  "name": "cardsite",
   "version": "1.0.0",
-  "description": "Upload an image and find matching music on YouTube",
-  "main": "fotomuusika.js",
+  "description": "Node.js website app displaying API data as cards",
+  "main": "server.js",
   "scripts": {
-    "start": "node fotomuusika.js",
-    "dev": "node fotomuusika.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [
-    "image",
-    "music",
-    "youtube"
-  ],
+  "keywords": ["cards", "api", "node"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "axios": "^1.6.2",
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "sharp": "^0.33.0",
-    "yt-search": "^2.13.1"
-  },
-  "overrides": {
-    "minimatch": "^3.1.5"
+    "cors": "^2.8.5"
   }
 }
